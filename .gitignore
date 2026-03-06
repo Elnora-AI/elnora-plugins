@@ -1,7 +1,25 @@
+# Dependencies
 node_modules/
+
+# Environment files
 .env
-.env.*
-!.env.template
+.env.local
+.env.*.local
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Coverage
+coverage/
+
+# Logs
+*.log
+
+# Claude Code local config
 *.local.md
 .claude/settings.local.json

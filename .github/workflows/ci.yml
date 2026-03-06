@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate Skills
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check marketplace.json is valid JSON
+        run: python3 -c "import json; json.load(open('.claude-plugin/marketplace.json'))"
+
+      - name: Check plugin.json is valid JSON
+        run: python3 -c "import json; json.load(open('elnora/.claude-plugin/plugin.json'))"
+
+      - name: Validate SKILL.md files exist and have frontmatter
+        run: |
+          errors=0
+          for skill_dir in elnora/skills/*/; do
+            skill_name=$(basename "$skill_dir")
+            skill_file="$skill_dir/SKILL.md"
+            if [ ! -f "$skill_file" ]; then
+              echo "ERROR: Missing $skill_file"
+              errors=$((errors + 1))
+              continue
+            fi
+            # Check frontmatter exists
+            if ! head -1 "$skill_file" | grep -q '^---$'; then
+              echo "ERROR: $skill_file missing frontmatter"
+              errors=$((errors + 1))
+            fi
+            # Check name matches directory
+            name=$(sed -n 's/^name: *//p' "$skill_file" | head -1)
+            if [ "$name" != "$skill_name" ]; then
+              echo "ERROR: $skill_file name '$name' does not match directory '$skill_name'"
+              errors=$((errors + 1))
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            echo "$errors validation error(s) found"
+            exit 1
+          fi
+          echo "All skills validated successfully"
+
+      - name: Check skill line counts (warn if over 500)
+        run: |
+          for skill_file in elnora/skills/*/SKILL.md; do
+            lines=$(wc -l < "$skill_file")
+            if [ "$lines" -gt 500 ]; then
+              echo "WARNING: $skill_file has $lines lines (recommended: < 500)"
+            fi
+          done
