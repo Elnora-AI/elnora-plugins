@@ -1,0 +1,20 @@
+{
+  "name": "elnora",
+  "version": "1.0.0",
+  "description": "AI-powered bioprotocol generation and lab workflow management. Connect to the Elnora AI Platform to generate, optimize, and manage bioprotocols for wet-lab experiments.",
+  "author": {
+    "name": "Elnora AI",
+    "url": "https://elnora.ai",
+    "email": "support@elnora.ai"
+  },
+  "repository": "https://github.com/Elnora-AI/elnora-plugins",
+  "homepage": "https://elnora.ai",
+  "license": "Apache-2.0",
+  "keywords": ["bioprotocol", "lab", "pharma", "life-sciences", "protocol-generation", "mcp"],
+  "mcpServers": {
+    "elnora": {
+      "type": "http",
+      "url": "https://mcp.elnora.ai/mcp"
+    }
+  }
+}

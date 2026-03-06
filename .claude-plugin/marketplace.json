@@ -1,0 +1,21 @@
+{
+  "name": "elnora-plugins",
+  "owner": {
+    "name": "Elnora AI",
+    "email": "support@elnora.ai",
+    "url": "https://elnora.ai"
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "description": "AI-powered bioprotocol generation and lab workflow management plugins"
+  },
+  "plugins": [
+    {
+      "name": "elnora",
+      "source": "./elnora",
+      "description": "Connect to the Elnora AI Platform for bioprotocol generation, task management, and file workflows",
+      "category": "life-sciences",
+      "tags": ["bioprotocol", "lab", "pharma", "life-sciences", "protocol-generation"]
+    }
+  ]
+}
