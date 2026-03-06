@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/Elnora-AI/elnora-plugins/compare/elnora-plugins-v1.0.0...elnora-plugins-v1.1.0) (2026-03-06)
+
+
+### Features
+
+* initial Elnora plugins marketplace ([0a2be9a](https://github.com/Elnora-AI/elnora-plugins/commit/0a2be9a16b864ee171f4bcd99f963728710bb6ab))
+
 ## [1.0.0](https://github.com/Elnora-AI/elnora-plugins/releases/tag/v1.0.0) (2026-03-06)
 
 ### Features
