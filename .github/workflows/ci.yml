@@ -18,7 +18,7 @@ jobs:
     name: Validate Skills
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Check marketplace.json is valid JSON
         run: python3 -c "import json; json.load(open('.claude-plugin/marketplace.json'))"
