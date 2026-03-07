@@ -37,6 +37,13 @@ No manual login required.
 | Org management, members, billing, invitations, shared library | `elnora-orgs` | organization, org, billing, invite, library |
 | Auth, API keys, account, health, diagnostics | `elnora-admin` | api key, health, account, feedback, audit, flags |
 
+## Organization Context
+
+Most org-scoped tools (projects, tasks, files, folders, search) accept an
+optional `org_id` parameter (UUID). When provided, the operation targets that
+organization instead of the user's active org. The user must be a member of the
+target org.
+
 ## ID Format
 
 All IDs are UUIDs (e.g., `bfdc6fbd-40ed-4042-9ea7-c79a5ec90085`).

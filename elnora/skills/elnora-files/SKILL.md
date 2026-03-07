@@ -11,6 +11,12 @@ description: >
 
 Manage files on the Elnora AI Platform. Files are protocol outputs, templates, datasets, and other artifacts attached to projects. The platform tracks version history for every file, supports working copies for edit-in-place workflows, and allows forking files across projects.
 
+## Organization Context
+
+All list, create, and upload tools accept an optional `org_id` parameter (UUID).
+When provided, the operation targets that organization instead of the user's
+active org. The user must be a member of the target org.
+
 ## Concepts
 
 - **File**: A document stored in a project. Has metadata (name, type, size) and content.

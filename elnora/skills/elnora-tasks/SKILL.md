@@ -11,6 +11,12 @@ description: >
 
 Tasks are conversation threads with the Elnora AI Platform. Each task is a chat where you send messages and receive AI-generated protocol responses. Use tasks to generate, iterate on, and refine bioprotocols.
 
+## Organization Context
+
+All list and create tools accept an optional `org_id` parameter (UUID). When
+provided, the operation targets that organization instead of the user's active
+org. The user must be a member of the target org.
+
 ## Concepts
 
 - **Task**: A conversation thread tied to a project. Has a title, status, and message history.
