@@ -15,75 +15,21 @@ Elnora is an AI-powered platform that helps researchers generate, optimize, and 
 - **OAuth 2.1** (recommended): Browser popup on first connection, automatic token refresh
 - **API Key**: Create at [platform.elnora.ai](https://platform.elnora.ai) > Settings > API Keys, pass as Bearer token
 
-## Available MCP Tools
+## Capabilities
 
-### Tasks & Messages
-| Tool | Description |
-|------|-------------|
-| `elnora_create_task` | Create a new conversation thread with Elnora AI |
-| `elnora_list_tasks` | List tasks with optional project/status filter |
-| `elnora_get_task` | Get full task detail including messages |
-| `elnora_get_task_messages` | Get message history for a task |
-| `elnora_send_message` | Send a message and receive AI response (30-120s for complex requests) |
-| `elnora_update_task` | Update task title or status |
-| `elnora_archive_task` | Archive a task |
-| `elnora_generate_protocol` | One-shot protocol generation |
+71 tools across 7 categories. All tools are discoverable through your MCP client's tool listing.
 
-### Files
-| Tool | Description |
-|------|-------------|
-| `elnora_list_files` | List files in a project |
-| `elnora_get_file` | Get file metadata |
-| `elnora_get_file_content` | Get file content |
-| `elnora_upload_file` | Upload a file to a project |
-| `elnora_download_file` | Download file content |
-| `elnora_create_file` | Create a new file |
-| `elnora_update_file` | Update file name or folder |
-| `elnora_archive_file` | Archive a file |
-| `elnora_get_file_versions` | Get version history |
-| `elnora_create_version` | Create a new version |
-| `elnora_restore_version` | Restore a previous version |
-| `elnora_fork_file` | Copy a file to another project |
-| `elnora_promote_file` | Change file visibility |
-| `elnora_create_working_copy` | Create an editable copy |
-| `elnora_commit_working_copy` | Commit changes back |
+| Category | Tools | What you can do |
+|----------|------:|-----------------|
+| Tasks & Protocols | 8 | Create conversation threads, send messages, generate bioprotocols |
+| Files | 15 | Upload, download, version, fork, and manage protocol files |
+| Projects | 10 | Create projects and manage team membership |
+| Organizations | 16 | Org settings, billing, member invitations, shared library |
+| Folders | 5 | Organize files into nested folder structures |
+| Search | 3 | Full-text search across tasks, files, and all resources |
+| Admin | 14 | API keys, audit logs, account, health checks, feature flags |
 
-### Projects
-| Tool | Description |
-|------|-------------|
-| `elnora_list_projects` | List all projects |
-| `elnora_get_project` | Get project details with members |
-| `elnora_create_project` | Create a new project |
-| `elnora_update_project` | Update project name/description |
-| `elnora_archive_project` | Archive a project |
-| `elnora_add_project_member` | Add a member to a project |
-| `elnora_remove_project_member` | Remove a member |
-| `elnora_update_project_member_role` | Change a member's role |
-
-### Search
-| Tool | Description |
-|------|-------------|
-| `elnora_search_tasks` | Search tasks by keyword |
-| `elnora_search_files` | Search files by keyword |
-| `elnora_search_all` | Search both tasks and files |
-
-### Organizations & Library
-| Tool | Description |
-|------|-------------|
-| `elnora_list_orgs` | List organizations |
-| `elnora_get_org` | Get organization details |
-| `elnora_create_org` | Create an organization |
-| `elnora_invite_org_member` | Invite a member by email |
-| `elnora_get_org_billing` | Get billing information |
-| `elnora_list_library_files` | Browse shared library |
-
-### Admin
-| Tool | Description |
-|------|-------------|
-| `elnora_health_check` | Check platform availability |
-| `elnora_create_api_key` | Create a new API key |
-| `elnora_list_audit_log` | View audit trail |
-| `elnora_submit_feedback` | Submit feedback to Elnora team |
+See the individual [skill files](skills/) for full tool reference with parameters and workflow recipes.
 
 ## Skills
 

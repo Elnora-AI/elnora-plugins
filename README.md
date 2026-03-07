@@ -5,7 +5,14 @@ The [Elnora AI Platform](https://elnora.ai) for generating, optimizing, and mana
 ## Quick Start (Claude Code)
 
 ```
-/plugin marketplace add Elnora-AI/elnora-plugins
+claude plugin marketplace add https://github.com/Elnora-AI/elnora-plugins.git
+claude plugin install elnora@elnora-plugins
+```
+
+Or from inside a Claude Code session:
+
+```
+/plugin marketplace add https://github.com/Elnora-AI/elnora-plugins.git
 /plugin install elnora@elnora-plugins
 ```
 
