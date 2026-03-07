@@ -10,6 +10,12 @@ description: >
 
 Full-text search across tasks and files on the Elnora AI Platform. Search by keyword to find protocols, conversations, and documents across all projects you have access to.
 
+## Organization Context
+
+All search tools accept an optional `org_id` parameter (UUID). When provided,
+the search targets that organization instead of the user's active org. The user
+must be a member of the target org.
+
 ## Concepts
 
 - **Search results** include a `snippet` with HTML-bold highlighted matches and a `rank` score for relevance sorting.

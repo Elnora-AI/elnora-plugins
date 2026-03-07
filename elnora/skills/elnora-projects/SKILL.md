@@ -11,6 +11,12 @@ description: >
 
 Manage projects on the Elnora AI Platform. Projects are the top-level containers for tasks (conversations) and files (protocol outputs). Each project has members with roles that control access.
 
+## Organization Context
+
+All list and create tools accept an optional `org_id` parameter (UUID). When
+provided, the operation targets that organization instead of the user's active
+org. The user must be a member of the target org.
+
 ## Concepts
 
 - **Project**: A workspace containing tasks and files. Has a name, description, icon, and member list.

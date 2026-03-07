@@ -37,6 +37,18 @@ No manual login required.
 | Org management, members, billing, invitations, shared library | `elnora-orgs` | organization, org, billing, invite, library |
 | Auth, API keys, account, health, diagnostics | `elnora-admin` | api key, health, account, feedback, audit, flags |
 
+## Organization Context
+
+Most org-scoped tools (projects, tasks, files, folders, search) accept an
+optional `org_id` parameter (UUID). When provided, the operation targets that
+organization instead of the user's active org. The user must be a member of the
+target org.
+
+**Workflow for org switching:**
+1. Call `elnora_list_orgs` first to discover available org IDs and names
+2. Pass the target `org_id` to any org-scoped tool (e.g., `elnora_list_projects`, `elnora_create_task`)
+3. By-ID tools (get, update, archive, delete) do NOT need `org_id` — they resolve via ownership
+
 ## ID Format
 
 All IDs are UUIDs (e.g., `bfdc6fbd-40ed-4042-9ea7-c79a5ec90085`).
@@ -71,25 +83,6 @@ For one-shot protocol generation, use `elnora_generate_protocol`:
 - `description`: What protocol you need (e.g., "HEK 293 cell maintenance protocol")
 - Returns the complete generated protocol
 
-## All Available MCP Tools
+## Tool Discovery
 
-### Tasks & Messages
-`elnora_create_task`, `elnora_list_tasks`, `elnora_get_task`, `elnora_get_task_messages`, `elnora_send_message`, `elnora_update_task`, `elnora_archive_task`
-
-### Files
-`elnora_list_files`, `elnora_get_file`, `elnora_get_file_content`, `elnora_upload_file`, `elnora_get_file_versions`, `elnora_restore_version`, `elnora_create_version`, `elnora_create_file`, `elnora_update_file`, `elnora_archive_file`, `elnora_fork_file`, `elnora_promote_file`, `elnora_create_working_copy`, `elnora_commit_working_copy`, `elnora_download_file`
-
-### Projects
-`elnora_list_projects`, `elnora_get_project`, `elnora_create_project`, `elnora_update_project`, `elnora_archive_project`, `elnora_list_project_members`, `elnora_add_project_member`, `elnora_remove_project_member`, `elnora_update_project_member_role`, `elnora_leave_project`
-
-### Search
-`elnora_search_tasks`, `elnora_search_files`, `elnora_search_all`
-
-### Organizations & Library
-`elnora_list_orgs`, `elnora_get_org`, `elnora_create_org`, `elnora_update_org`, `elnora_list_org_members`, `elnora_update_org_member_role`, `elnora_remove_org_member`, `elnora_invite_org_member`, `elnora_list_org_invitations`, `elnora_cancel_org_invitation`, `elnora_get_org_billing`, `elnora_list_library_files`, `elnora_list_library_folders`, `elnora_create_library_folder`, `elnora_rename_library_folder`, `elnora_delete_library_folder`
-
-### Folders
-`elnora_list_folders`, `elnora_create_folder`, `elnora_rename_folder`, `elnora_move_folder`, `elnora_delete_folder`
-
-### Admin & Diagnostics
-`elnora_health_check`, `elnora_get_account`, `elnora_update_account`, `elnora_list_api_keys`, `elnora_create_api_key`, `elnora_revoke_api_key`, `elnora_list_agreements`, `elnora_accept_terms`, `elnora_submit_feedback`, `elnora_list_audit_log`, `elnora_list_flags`, `elnora_get_flag`, `elnora_accept_invitation`, `elnora_get_invitation_info`
+Each sub-skill lists its own MCP tools with full parameter docs and workflow recipes. Load the relevant sub-skill from the routing table above to see available tools.

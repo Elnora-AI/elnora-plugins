@@ -11,6 +11,12 @@ description: >
 Manage folders within Elnora projects via MCP tools. Folders organize files
 hierarchically inside a project.
 
+## Organization Context
+
+All folder tools accept an optional `org_id` parameter (UUID). When provided,
+the operation targets that organization instead of the user's active org. The
+user must be a member of the target org.
+
 ## Core Concepts
 
 - **Folders** exist within a project and organize files into a hierarchy.
