@@ -44,6 +44,11 @@ optional `org_id` parameter (UUID). When provided, the operation targets that
 organization instead of the user's active org. The user must be a member of the
 target org.
 
+**Workflow for org switching:**
+1. Call `elnora_list_orgs` first to discover available org IDs and names
+2. Pass the target `org_id` to any org-scoped tool (e.g., `elnora_list_projects`, `elnora_create_task`)
+3. By-ID tools (get, update, archive, delete) do NOT need `org_id` — they resolve via ownership
+
 ## ID Format
 
 All IDs are UUIDs (e.g., `bfdc6fbd-40ed-4042-9ea7-c79a5ec90085`).
