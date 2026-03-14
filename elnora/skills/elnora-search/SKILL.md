@@ -2,7 +2,8 @@
 name: elnora-search
 description: >
   This skill should be used when the user asks to "search tasks", "find a protocol",
-  "search files", "find tasks about", "look up", "query Elnora", "search Elnora",
+  "search files", "search file content", "search inside files", "find tasks about",
+  "look up", "query Elnora", "search Elnora", "full text search",
   or any task involving searching the Elnora Platform for tasks or files by keyword.
 ---
 
@@ -90,13 +91,35 @@ Full-text search scoped to files only.
 
 Same response shape as `elnora_search_all` but only returns file results. Use this when you know you are looking for a document or protocol output.
 
+### elnora_search_file_content
+
+Full-text search inside file bodies (protocols, documents). Unlike `elnora_search_files` which searches metadata, this searches the actual content of files.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `query` | string | Yes | - | Search query (min: 1, max: 1,000 chars) |
+| `page` | integer | No | 1 | Page number (min: 1) |
+| `page_size` | integer | No | 25 | Results per page (min: 1, max: 100) |
+
+Same response shape as other search tools. Use this to find specific protocol steps, reagent mentions, or methods within generated protocols.
+
+## Token Efficiency
+
+All search tools support optional `compact` and `fields` parameters:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `compact` | boolean | false | Strip null/empty values (~30-40% token savings) |
+| `fields` | string | all | Comma-separated field names (e.g., "id,name,snippet") |
+
 ## Choosing the Right Search Tool
 
 | Goal | Tool |
 |------|------|
 | Find anything matching a keyword | `elnora_search_all` |
 | Find a conversation about a topic | `elnora_search_tasks` |
-| Find a protocol document by name or content | `elnora_search_files` |
+| Find a protocol document by name | `elnora_search_files` |
+| Find content INSIDE file bodies | `elnora_search_file_content` |
 | Browse all files in a specific project | `elnora_list_files` (not search) |
 | Browse all tasks in a specific project | `elnora_list_tasks` (not search) |
 

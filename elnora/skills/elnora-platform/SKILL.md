@@ -25,6 +25,15 @@ Auth is handled automatically by the MCP connection:
 
 No manual login required.
 
+## Token Efficiency
+
+All MCP tools support two optional params for reducing token usage:
+
+| Param | Effect |
+|-------|--------|
+| `compact: true` | Strip null/empty values (~30-40% savings). Always use in agent workflows. |
+| `fields: "id,name"` | Return only specified fields. Applied to each item in paginated results. |
+
 ## Routing Table
 
 | Need | Sub-skill | Trigger keywords |
@@ -32,10 +41,11 @@ No manual login required.
 | List/get/create/update/archive projects, manage members | `elnora-projects` | project, workspace, create project, members |
 | Create/manage/message tasks, protocol generation | `elnora-tasks` | task, protocol, send message, generate |
 | Browse/read/upload/create/version/fork files | `elnora-files` | file, content, version history, upload, download, fork |
-| Find tasks or files by keyword | `elnora-search` | search, find, query |
+| Find tasks, files, or content by keyword | `elnora-search` | search, find, query, search file content |
 | Manage project folder trees | `elnora-folders` | folder, create folder, move folder |
 | Org management, members, billing, invitations, shared library | `elnora-orgs` | organization, org, billing, invite, library |
 | Auth, API keys, account, health, diagnostics | `elnora-admin` | api key, health, account, feedback, audit, flags |
+| What can the Elnora Agent do? (tools, search, memory) | `elnora-agent` | agent capabilities, agent tools, what can agent do |
 
 ## Organization Context
 

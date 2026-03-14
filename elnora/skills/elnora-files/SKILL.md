@@ -145,6 +145,17 @@ Get version history for a file. Use this to track how a protocol evolved across 
 
 Returns paginated list of versions with timestamps and metadata.
 
+### elnora_get_version_content
+
+Get the content of a specific historical file version. Essential for comparing versions or reviewing past protocol iterations.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `file_id` | uuid | Yes | File UUID |
+| `version_id` | uuid | Yes | Version UUID |
+
+Get version IDs from `elnora_get_file_versions` first.
+
 ### elnora_create_version
 
 Create a new version of a file with updated content.
@@ -241,3 +252,49 @@ Change a file's visibility level (e.g., promote to organization library).
 ### Reference a file in a task conversation
 
 Use file IDs from `elnora_list_files` as `file_ids` in `elnora_send_message` or `context_file_ids` in `elnora_create_task` to give the AI context about existing protocols or datasets.
+
+## Presigned URL Upload (Large/Binary Files)
+
+For files too large for inline upload (>100KB) or binary files, use the two-step presigned URL flow:
+
+### elnora_initiate_upload
+
+Start a multi-step file upload. Returns a presigned URL for uploading content directly to storage.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `project_id` | uuid | Yes | Project UUID |
+| `file_name` | string | Yes | Filename (min: 1, max: 255 chars) |
+| `content_type` | string | No | MIME type (default: application/octet-stream) |
+| `file_size_bytes` | integer | Yes | File size in bytes |
+
+Returns a presigned URL and file ID. PUT the file content to the URL, then confirm.
+
+### elnora_confirm_upload
+
+Confirm that a file upload to the presigned URL has completed.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `file_id` | uuid | Yes | File UUID from `elnora_initiate_upload` |
+
+## Search Inside Files
+
+### elnora_search_file_content
+
+Full-text search inside file bodies. Finds content within protocols and documents, not just metadata.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `query` | string | Yes | - | Search query (min: 1, max: 1,000 chars) |
+| `page` | integer | No | 1 | Page number |
+| `page_size` | integer | No | 25 | Results per page (max: 100) |
+
+## Token Efficiency
+
+All file tools support optional `compact` and `fields` parameters:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `compact` | boolean | false | Strip null/empty values (~30-40% token savings) |
+| `fields` | string | all | Comma-separated field names (e.g., "id,name") |
