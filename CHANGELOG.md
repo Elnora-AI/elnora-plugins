@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/Elnora-AI/elnora-plugins/compare/elnora-plugins-v1.1.0...elnora-plugins-v1.2.0) (2026-03-14)
+
+
+### Features
+
+* **skills:** add agent capabilities skill, file content search, and presigned uploads ([4433ee8](https://github.com/Elnora-AI/elnora-plugins/commit/4433ee88e4d0e257d1fd2e08d52daaf0d5c3dcc0))
+* **skills:** add agent capabilities, file content search, and presigned uploads ([3157a0d](https://github.com/Elnora-AI/elnora-plugins/commit/3157a0d3d61aab27a8d595e14707b1040e846fa7))
+
 ## [1.1.0](https://github.com/Elnora-AI/elnora-plugins/compare/elnora-plugins-v1.0.0...elnora-plugins-v1.1.0) (2026-03-06)
 
 
