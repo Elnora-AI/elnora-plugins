@@ -6,7 +6,7 @@
     "url": "https://elnora.ai"
   },
   "metadata": {
-    "version": "1.0.0",
+    "version": "1.2.0",
     "description": "AI-powered bioprotocol generation and lab workflow management plugins"
   },
   "plugins": [
