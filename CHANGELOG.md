@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/Elnora-AI/elnora-plugins/compare/elnora-plugins-v1.2.0...elnora-plugins-v1.2.1) (2026-03-23)
+
+
+### Bug Fixes
+
+* pin release-please-action to commit SHA ([0ccfcac](https://github.com/Elnora-AI/elnora-plugins/commit/0ccfcacc9e761ee727a0a83fda39eb511a23ff5d))
+* pin release-please-action to commit SHA for supply chain security ([783bb24](https://github.com/Elnora-AI/elnora-plugins/commit/783bb2490b3e405c5a0c2e50757786557a8fac3e))
+
 ## [1.2.0](https://github.com/Elnora-AI/elnora-plugins/compare/elnora-plugins-v1.1.0...elnora-plugins-v1.2.0) (2026-03-14)
 
 
