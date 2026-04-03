@@ -1,10 +1,13 @@
 ---
 name: elnora-admin
 description: >
-  Use this skill when the user asks about "Elnora account", "API keys",
-  "audit log", "feature flags", "health check", "terms of service",
-  "platform status", "feedback", "invitation", or any Elnora platform
-  administration task.
+  Manages Elnora platform administration: creates and revokes API keys,
+  queries audit logs, checks feature flags, accepts terms-of-service
+  agreements, inspects and accepts org invitations, submits feedback, and
+  monitors platform health. Handles account retrieval and updates. Applies
+  when the user mentions "Elnora account", "API keys", "audit log",
+  "feature flags", "health check", "terms of service", "platform status",
+  "feedback", or "invitation".
 ---
 
 # Elnora Admin
@@ -95,35 +98,34 @@ before attempting to use it.
 
 ## Common Workflows
 
-### Check platform health
+### Create an API Key
 
-1. `elnora_health_check` — no auth needed, confirms the API is reachable
+1. Run `elnora_health_check` to confirm the platform is reachable.
+2. Call `elnora_create_api_key` with a descriptive `name`.
+3. If creation fails, verify the user has org-level key creation permission and retry once.
+4. On success, **immediately** present the full key to the user — it is never shown again.
+5. Remind the user to store the key in a secrets manager.
 
-### Create and store an API key
+### Accept an Org Invitation
 
-1. `elnora_create_api_key` with a descriptive `name`
-2. **Immediately** present the returned key to the user
-3. Remind them this is the only time the full key is shown
+1. Call `elnora_get_invitation_info` with the `invitation_id` to retrieve details.
+2. Present the org name, role, and expiry to the user for confirmation.
+3. Only after the user confirms, call `elnora_accept_invitation`.
+4. If the invitation is expired (404), ask the user to request a new one from the org admin.
 
-### Review audit activity
+### Query Audit Logs
 
-1. `elnora_list_audit_log` with `org_id` and any desired filters
-2. Paginate if needed — check response for pagination fields
+1. Determine the target `org_id` (use `elnora_get_account` if the user does not know it).
+2. Call `elnora_list_audit_log` with `org_id` and any filters (action type, user, date range).
+3. If the result set is large, apply narrower filters or paginate by date range.
 
-### Check feature availability
+## Error Handling
 
-1. `elnora_list_flags` to see all flags, or `elnora_get_flag` for a specific one
-2. Use the flag value to decide whether to proceed with a feature
-
-### Accept an invitation
-
-1. `elnora_get_invitation_info` with `invitation_id` to review details
-2. `elnora_accept_invitation` to join the org
-
-### View and accept terms
-
-1. `elnora_list_agreements` to see pending agreements
-2. `elnora_accept_terms` with the `agreement_id` to accept
+- **Auth failure (401/403)**: The MCP server's OAuth token or API key may have expired. Ask the user to restart the MCP server or check their API key. Verify the key has not been revoked with `elnora_list_api_keys`.
+- **API key creation fails**: Confirm org-level permission, retry once, then run `elnora_health_check` to rule out a platform outage.
+- **Resource not found (404)**: Verify the ID is a valid UUID and belongs to the correct org. For invitations, the link may have expired.
+- **Duplicate API key name**: The platform may reject duplicate names within an org. Append a timestamp or suffix and retry.
+- **Agreement required (403 on non-auth endpoints)**: Some operations require accepted terms. Call `elnora_list_agreements`, accept any pending agreements with `elnora_accept_terms`, then retry the original operation.
 
 ## ID Format
 
