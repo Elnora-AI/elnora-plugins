@@ -3,298 +3,231 @@ name: elnora-files
 description: >
   This skill should be used when the user asks to "list files", "read a file",
   "get file content", "view protocol output", "file versions", "version history",
-  "download protocol", "upload a file", "fork a file", "working copy",
-  or any task involving Elnora Platform file management.
+  "download protocol", "upload file", "upload batch", "bulk upload", "create file",
+  "archive file", "fork file", "promote file", "working copy", "restore version",
+  "search file content", or any task involving Elnora Platform file management.
 ---
 
 # Elnora Files
 
-Manage files on the Elnora AI Platform. Files are protocol outputs, templates, datasets, and other artifacts attached to projects. The platform tracks version history for every file, supports working copies for edit-in-place workflows, and allows forking files across projects.
+Browse, read, create, upload, version, and manage files on the Elnora AI Platform.
 
-## Organization Context
+## Invocation
 
-All list, create, and upload tools accept an optional `org_id` parameter (UUID).
-When provided, the operation targets that organization instead of the user's
-active org. The user must be a member of the target org.
-
-## Concepts
-
-- **File**: A document stored in a project. Has metadata (name, type, size) and content.
-- **Version**: An immutable snapshot of file content. Every change creates a new version.
-- **Working copy**: A mutable draft of a file for editing. Commit to save changes as a new version.
-- **Fork**: Copy a file to another project, preserving content but creating an independent copy.
-- **Promote**: Change a file's visibility level (e.g., to organization library).
-- **All IDs are UUIDs** (e.g., `bfdc6fbd-40ed-4042-9ea7-c79a5ec90085`).
-
-## MCP Tools
-
-### elnora_list_files
-
-List files in a project or workspace.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `project_id` | uuid | No | - | Filter by project UUID |
-| `page` | integer | No | 1 | Page number (min: 1) |
-| `page_size` | integer | No | 25 | Results per page (min: 1, max: 100) |
-
-Returns paginated results:
-
-```json
-{
-  "items": [
-    {
-      "id": "<UUID>",
-      "name": "pcr-protocol.md",
-      "mimeType": "text/markdown",
-      "size": 2048,
-      "createdAt": "...",
-      "updatedAt": "..."
-    }
-  ],
-  "page": 1,
-  "totalCount": 5,
-  "hasNextPage": false
-}
+```bash
+CLI="elnora"
 ```
 
-### elnora_get_file
+## Commands
 
-Get file metadata (name, type, size, timestamps) without content.
+### List Files
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file_id` | uuid | Yes | File UUID |
+```bash
+$CLI --compact files list --project <PROJECT_ID>
+$CLI --compact files list --project <PROJECT_ID> --page 2 --page-size 50
+$CLI --compact --fields "id,name" files list --project <PROJECT_ID>
+```
 
-Use this to inspect a file before reading its content.
+`--project` is required.
 
-### elnora_get_file_content
+### Get File Metadata
 
-Retrieve the full content of a file.
+```bash
+$CLI --compact files get <FILE_ID>
+```
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file_id` | uuid | Yes | File UUID |
+Returns metadata (name, type, size, timestamps) without actual content.
 
-Returns the raw file content. Use this to read protocol outputs, templates, or any file stored on the platform.
+### Get File Content
 
-### elnora_create_file
+```bash
+$CLI files content <FILE_ID>
+```
 
-Create a new empty file in a project.
+Returns raw file content to stdout. Pipe to save:
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `project_id` | uuid | Yes | Project UUID |
-| `name` | string | Yes | Filename (min: 1, max: 255 chars) |
-| `file_type` | string | No | File type / MIME type |
-| `folder_id` | uuid | No | Folder UUID to place the file in |
+```bash
+$CLI files content <FILE_ID> > protocol.md
+```
 
-Returns the created file object with its `id`. The file is created empty; use `elnora_create_version` to add content.
+Note: `--compact` or `--fields` wraps output in JSON. Omit both for raw text.
 
-### elnora_upload_file
+### Download File
 
-Upload a text file with content in a single call.
+```bash
+$CLI files download <FILE_ID>
+```
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `name` | string | Yes | Filename (min: 1, max: 255 chars) |
-| `content` | string | Yes | File content (min: 1, max: 100,000 chars) |
-| `file_type` | string | No | MIME type (default: text/markdown) |
+Downloads file content via the `/download` endpoint (may differ from `content` in backend handling).
 
-Use this for quick uploads when you have the content ready. For structured project placement, use `elnora_create_file` + `elnora_create_version` instead.
+### Get Version History
 
-### elnora_update_file
+```bash
+$CLI --compact files versions <FILE_ID>
+$CLI --compact files versions <FILE_ID> --page-size 10
+```
 
-Update file metadata (rename or move to a different folder).
+### Get Version Content
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file_id` | uuid | Yes | File UUID |
-| `name` | string | No | New filename (min: 1, max: 255 chars) |
-| `folder_id` | uuid | No | New folder UUID |
+```bash
+$CLI files version-content <FILE_ID> <VERSION_ID>
+```
 
-Must provide at least one of `name` or `folder_id`.
+Both `<FILE_ID>` and `<VERSION_ID>` are positional. Returns raw content.
 
-### elnora_archive_file
+### Create Version
 
-Archive (permanently delete) a file. **Destructive -- confirm with user first.**
+```bash
+$CLI --compact files create-version <FILE_ID>
+$CLI --compact files create-version <FILE_ID> --content "Updated protocol text"
+```
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file_id` | uuid | Yes | File UUID |
+### Restore Version
 
-### elnora_download_file
+```bash
+$CLI --compact files restore <FILE_ID> <VERSION_ID>
+```
 
-Download a file (returns a download URL or content).
+Both positional. Destructive — confirm with user first.
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file_id` | uuid | Yes | File UUID |
+### Create File
 
-## Version Management
+```bash
+$CLI --compact files create --project <PROJECT_ID> --name "protocol.md" --type Document
+$CLI --compact files create --project <PROJECT_ID> --name "data.csv" --type Dataset --folder <FOLDER_ID>
+```
 
-### elnora_get_file_versions
+| Flag | Required | Notes |
+|------|----------|-------|
+| `--project` | Yes | Project UUID |
+| `--name` | Yes | File name |
+| `--type` | Yes | File type (e.g. Document, Protocol, Dataset) |
+| `--folder` | No | Folder UUID |
 
-Get version history for a file. Use this to track how a protocol evolved across iterations.
+### Upload File
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `file_id` | uuid | Yes | - | File UUID |
-| `page` | integer | No | 1 | Page number (min: 1) |
-| `page_size` | integer | No | 25 | Results per page (min: 1, max: 100) |
+```bash
+$CLI --compact files upload --project <PROJECT_ID> --file-path /path/to/file.md
+$CLI --compact files upload --project <PROJECT_ID> --file-path /path/to/data.csv --file-name "renamed.csv" --content-type "text/csv"
+```
 
-Returns paginated list of versions with timestamps and metadata.
+Three-step process (handled automatically): presigned URL, upload, confirm.
 
-### elnora_get_version_content
+| Flag | Required | Notes |
+|------|----------|-------|
+| `--project` | Yes | Project UUID |
+| `--file-path` | Yes | Local file path |
+| `--file-name` | No | Override filename |
+| `--content-type` | No | MIME type (defaults to application/octet-stream) |
 
-Get the content of a specific historical file version. Essential for comparing versions or reviewing past protocol iterations.
+### Upload Batch
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file_id` | uuid | Yes | File UUID |
-| `version_id` | uuid | Yes | Version UUID |
+```bash
+$CLI --compact files upload-batch --project <PROJECT_ID> --file-paths "a.pdf,b.docx,c.txt"
+$CLI --compact files upload-batch --project <PROJECT_ID> --file-paths "file1.md,file2.md" --folder <FOLDER_ID>
+```
 
-Get version IDs from `elnora_get_file_versions` first.
+Uploads up to 50 files. Returns per-file success/failure results.
 
-### elnora_create_version
+| Flag | Required | Notes |
+|------|----------|-------|
+| `--project` | Yes | Project UUID |
+| `--file-paths` | Yes | Comma-separated local file paths |
+| `--folder` | No | Folder UUID (applies to all files) |
 
-Create a new version of a file with updated content.
+### Confirm Upload
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file_id` | uuid | Yes | File UUID |
-| `content` | string | No | Version content (max: 100,000 chars) |
+```bash
+$CLI --compact files confirm-upload <FILE_ID>
+```
 
-Each call creates a new immutable version. The file's current content becomes this version.
+Only needed if `upload` was interrupted after the PUT step.
 
-### elnora_restore_version
+### Update File
 
-Restore a file to a specific previous version.
+```bash
+$CLI --compact files update <FILE_ID> --name "new-name.md"
+$CLI --compact files update <FILE_ID> --folder <FOLDER_ID>
+```
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file_id` | uuid | Yes | File UUID |
-| `version_id` | uuid | Yes | Version UUID to restore |
+Must provide at least one of `--name` or `--folder`.
 
-Get version IDs from `elnora_get_file_versions` first.
+### Archive File
 
-## Working Copies
+```bash
+$CLI --compact files archive <FILE_ID>
+# -> {"archived":true,"fileId":"<UUID>"}
+```
 
-Working copies let you edit a file in place before committing changes.
+Destructive — confirm with user before running.
 
-### elnora_create_working_copy
+### Promote File
 
-Create a mutable working copy of a file for editing.
+```bash
+$CLI --compact files promote <FILE_ID> --visibility <LEVEL>
+```
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file_id` | uuid | Yes | File UUID |
-| `task_id` | uuid | No | Associated task UUID |
+`--visibility` is required.
 
-### elnora_commit_working_copy
+### Fork File
 
-Commit the working copy back to the file, saving changes as a new version.
+```bash
+$CLI --compact files fork <FILE_ID> --target-project <PROJECT_ID>
+```
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file_id` | uuid | Yes | File UUID |
+`<FILE_ID>` is positional (`fileId`). `--target-project` is a flag (`targetProject` doesn't end in "Id").
 
-## Cross-Project Operations
+### Working Copy
 
-### elnora_fork_file
+```bash
+$CLI --compact files working-copy <FILE_ID>
+$CLI --compact files working-copy <FILE_ID> --task <TASK_ID>
+```
 
-Fork (copy) a file to another project. Creates an independent copy in the target project.
+### Commit Working Copy
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file_id` | uuid | Yes | Source file UUID |
-| `target_project_id` | uuid | Yes | Target project UUID |
+```bash
+$CLI --compact files commit <FILE_ID>
+```
 
-### elnora_promote_file
+### Search File Content
 
-Change a file's visibility level (e.g., promote to organization library).
+```bash
+$CLI --compact files search-content --query "annealing temperature"
+$CLI --compact files search-content --query "BRCA1" --project <PROJECT_ID>
+$CLI --compact files search-content --query "gel electrophoresis" --page-size 10
+```
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file_id` | uuid | Yes | File UUID |
-| `visibility` | string | Yes | Target visibility level |
+Full-text search inside file contents. Also available as `search file-content`.
 
-## Agent Workflow Recipes
+| Flag | Required | Notes |
+|------|----------|-------|
+| `--query` | Yes | Search query string (no `-q` shorthand) |
+| `--project` | No | Project UUID to filter |
+| `--page` | No | Page number (default 1) |
+| `--page-size` | No | Results per page (default 25, max 100) |
 
-### Read a protocol from a project
+## Agent Recipes
 
-1. Call `elnora_list_files` with `project_id` to browse files
-2. Call `elnora_get_file_content` with the target file's `id`
+**Read a protocol from a project:**
 
-### Upload a protocol template
+```bash
+$CLI --compact --fields "id,name" files list --project <PROJECT_ID>
+$CLI files content <FILE_ID>
+```
 
-1. Call `elnora_upload_file` with `name` and `content`
-2. Use the returned file `id` in `elnora_send_message` via `file_ids` to reference it in a task
+**Upload a file and reference it in a task:**
 
-### Track protocol evolution
+```bash
+$CLI --compact files upload --project <PROJECT_ID> --file-path /path/to/protocol.md
+# Use the returned file ID:
+$CLI --compact tasks send <TASK_ID> --message "Optimize this protocol" --file-refs "<FILE_ID>" --wait
+```
 
-1. Call `elnora_get_file_versions` to see all versions
-2. Call `elnora_get_file_content` to read current content
-3. Use `elnora_restore_version` if you need to revert
+**Edit-in-place (working copy):**
 
-### Edit a file with working copies
-
-1. Call `elnora_create_working_copy` with the file ID
-2. Make edits (the working copy is mutable)
-3. Call `elnora_commit_working_copy` to save changes as a new version
-
-### Copy a file to another project
-
-1. Get the source file ID from `elnora_list_files` or `elnora_search_files`
-2. Get the target project ID from `elnora_list_projects`
-3. Call `elnora_fork_file` with both IDs
-
-### Reference a file in a task conversation
-
-Use file IDs from `elnora_list_files` as `file_ids` in `elnora_send_message` or `context_file_ids` in `elnora_create_task` to give the AI context about existing protocols or datasets.
-
-## Presigned URL Upload (Large/Binary Files)
-
-For files too large for inline upload (>100KB) or binary files, use the two-step presigned URL flow:
-
-### elnora_initiate_upload
-
-Start a multi-step file upload. Returns a presigned URL for uploading content directly to storage.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `project_id` | uuid | Yes | Project UUID |
-| `file_name` | string | Yes | Filename (min: 1, max: 255 chars) |
-| `content_type` | string | No | MIME type (default: application/octet-stream) |
-| `file_size_bytes` | integer | Yes | File size in bytes |
-
-Returns a presigned URL and file ID. PUT the file content to the URL, then confirm.
-
-### elnora_confirm_upload
-
-Confirm that a file upload to the presigned URL has completed.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file_id` | uuid | Yes | File UUID from `elnora_initiate_upload` |
-
-## Search Inside Files
-
-### elnora_search_file_content
-
-Full-text search inside file bodies. Finds content within protocols and documents, not just metadata.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `query` | string | Yes | - | Search query (min: 1, max: 1,000 chars) |
-| `page` | integer | No | 1 | Page number |
-| `page_size` | integer | No | 25 | Results per page (max: 100) |
-
-## Token Efficiency
-
-All file tools support optional `compact` and `fields` parameters:
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `compact` | boolean | false | Strip null/empty values (~30-40% token savings) |
-| `fields` | string | all | Comma-separated field names (e.g., "id,name") |
+```bash
+WC=$($CLI --compact files working-copy <FILE_ID> | jq -r '.id')
+# ... make edits externally ...
+$CLI --compact files commit "$WC"
+```

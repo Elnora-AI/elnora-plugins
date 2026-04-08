@@ -3,158 +3,84 @@ name: elnora-search
 description: >
   This skill should be used when the user asks to "search tasks", "find a protocol",
   "search files", "search file content", "search inside files", "find tasks about",
-  "look up", "query Elnora", "search Elnora", "full text search",
-  or any task involving searching the Elnora Platform for tasks or files by keyword.
+  "query Elnora", "search Elnora platform", "full text search",
+  or any task involving searching the Elnora Platform for tasks, files, or all resources
+  by keyword. NOT for web search — use elnora-agent for that.
 ---
 
 # Elnora Search
 
-Full-text search across tasks and files on the Elnora AI Platform. Search by keyword to find protocols, conversations, and documents across all projects you have access to.
+Search tasks, files, or all resources across projects by keyword.
 
-## Organization Context
+## Invocation
 
-All search tools accept an optional `org_id` parameter (UUID). When provided,
-the search targets that organization instead of the user's active org. The user
-must be a member of the target org.
-
-## Concepts
-
-- **Search results** include a `snippet` with HTML-bold highlighted matches and a `rank` score for relevance sorting.
-- **Search is read-only.** Use search to find resources, then use domain-specific tools (`elnora_get_task`, `elnora_get_file_content`, etc.) to act on them.
-- Results span all projects you have access to. There is no project filter on search -- use `elnora_list_tasks` or `elnora_list_files` with `project_id` to browse within a single project.
-
-## MCP Tools
-
-### elnora_search_all
-
-Full-text search across all resource types (tasks, files, etc.) in a single call.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `query` | string | Yes | - | Search query (min: 1, max: 1,000 chars) |
-| `page` | integer | No | 1 | Page number (min: 1) |
-| `page_size` | integer | No | 25 | Results per page (min: 1, max: 100) |
-
-Returns paginated results:
-
-```json
-{
-  "items": [
-    {
-      "type": "task",
-      "id": "<UUID>",
-      "title": "PCR Protocol for BRCA1",
-      "snippet": "...amplify <b>BRCA1</b> exon 11 using standard <b>PCR</b>...",
-      "projectId": "<UUID>",
-      "createdAt": "...",
-      "rank": 0.85
-    },
-    {
-      "type": "file",
-      "id": "<UUID>",
-      "title": "brca1-protocol-v2.md",
-      "snippet": "...<b>PCR</b> amplification protocol for...",
-      "projectId": "<UUID>",
-      "createdAt": "...",
-      "rank": 0.72
-    }
-  ],
-  "page": 1,
-  "totalCount": 8,
-  "hasNextPage": false
-}
+```bash
+CLI="elnora"
 ```
 
-Use the `type` field to distinguish between tasks and files in results.
+## Commands
 
-### elnora_search_tasks
+### Search Tasks
 
-Full-text search scoped to tasks only.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `query` | string | Yes | - | Search query (min: 1, max: 1,000 chars) |
-| `page` | integer | No | 1 | Page number (min: 1) |
-| `page_size` | integer | No | 25 | Results per page (min: 1, max: 100) |
-
-Same response shape as `elnora_search_all` but only returns task results. Use this when you know you are looking for a conversation thread.
-
-### elnora_search_files
-
-Full-text search scoped to files only.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `query` | string | Yes | - | Search query (min: 1, max: 1,000 chars) |
-| `page` | integer | No | 1 | Page number (min: 1) |
-| `page_size` | integer | No | 25 | Results per page (min: 1, max: 100) |
-
-Same response shape as `elnora_search_all` but only returns file results. Use this when you know you are looking for a document or protocol output.
-
-### elnora_search_file_content
-
-Full-text search inside file bodies (protocols, documents). Unlike `elnora_search_files` which searches metadata, this searches the actual content of files.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `query` | string | Yes | - | Search query (min: 1, max: 1,000 chars) |
-| `page` | integer | No | 1 | Page number (min: 1) |
-| `page_size` | integer | No | 25 | Results per page (min: 1, max: 100) |
-
-Same response shape as other search tools. Use this to find specific protocol steps, reagent mentions, or methods within generated protocols.
-
-## Token Efficiency
-
-All search tools support optional `compact` and `fields` parameters:
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `compact` | boolean | false | Strip null/empty values (~30-40% token savings) |
-| `fields` | string | all | Comma-separated field names (e.g., "id,name,snippet") |
-
-## Choosing the Right Search Tool
-
-| Goal | Tool |
-|------|------|
-| Find anything matching a keyword | `elnora_search_all` |
-| Find a conversation about a topic | `elnora_search_tasks` |
-| Find a protocol document by name | `elnora_search_files` |
-| Find content INSIDE file bodies | `elnora_search_file_content` |
-| Browse all files in a specific project | `elnora_list_files` (not search) |
-| Browse all tasks in a specific project | `elnora_list_tasks` (not search) |
-
-## Pagination
-
-Search results use page-based pagination:
-
-```json
-{
-  "items": [...],
-  "page": 1,
-  "totalCount": 50,
-  "hasNextPage": true
-}
+```bash
+$CLI --compact search tasks --query "PCR protocol"
+$CLI --compact search tasks --query "BRCA1" --page-size 10
 ```
 
-If `hasNextPage` is true, increment `page` and call again.
+Results include `snippet` with HTML-bold match highlights and `rank` for relevance:
 
-## Agent Workflow Recipes
+```json
+{"items":[{"type":"task","id":"<UUID>","title":"...","snippet":"...with <b>highlighted</b> matches...","projectId":"<UUID>","rank":0.06}],"page":1,"totalCount":N,"hasNextPage":false}
+```
 
-### Find a task by topic, then read the conversation
+### Search Files
 
-1. Call `elnora_search_tasks` with a keyword query (e.g., "BRCA1")
-2. Pick the best match by `rank`
-3. Call `elnora_get_task_messages` with the task's `id` to read the full conversation
+```bash
+$CLI --compact search files --query "gel electrophoresis"
+$CLI --compact search files --query "template" --page 2
+```
 
-### Find a protocol file and read its content
+### Search File Content
 
-1. Call `elnora_search_files` with a keyword query (e.g., "gel electrophoresis")
-2. Pick the best match by `rank`
-3. Call `elnora_get_file_content` with the file's `id` to read the protocol
+```bash
+$CLI --compact search file-content --query "annealing temperature"
+$CLI --compact search file-content --query "BRCA1" --project-id <PROJECT_ID>
+```
 
-### Search across everything, then route by type
+Full-text search inside file contents. Also available as `files search-content` (which uses `--project` instead of `--project-id`).
 
-1. Call `elnora_search_all` with a broad query
-2. For each result, check the `type` field:
-   - `"task"` -- use `elnora_get_task` or `elnora_get_task_messages`
-   - `"file"` -- use `elnora_get_file` or `elnora_get_file_content`
+Note: `search file-content` uses `--project-id` (field name: `projectId`, optional so it's a flag). `files search-content` uses `--project` (field name: `project`).
+
+### Search All
+
+```bash
+$CLI --compact search all --query "BRCA1"
+$CLI --compact search all --query "transfection" --page-size 50
+```
+
+Searches both tasks and files. Results include a `type` field ("task" or "file").
+
+## Shared Options
+
+All four commands share:
+
+| Flag | Default | Notes |
+|------|---------|-------|
+| `--query` | Required | Search query string |
+| `--page` | 1 | Page number |
+| `--page-size` | 25 | Results per page (max 100) |
+
+## Agent Recipes
+
+**Find a task, then read it:**
+
+```bash
+TASK_ID=$($CLI --compact search tasks --query "BRCA1" | jq -r '.items[0].id')
+$CLI --compact tasks messages "$TASK_ID"
+```
+
+**Broad search:**
+
+```bash
+$CLI --compact search all --query "HEK 293"
+```

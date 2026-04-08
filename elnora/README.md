@@ -17,17 +17,22 @@ Elnora is an AI-powered platform that helps researchers generate, optimize, and 
 
 ## Capabilities
 
-71 tools across 7 categories. All tools are discoverable through your MCP client's tool listing.
+93 commands across 14 groups. All tools are discoverable through your MCP client's tool listing or via the `elnora` CLI.
 
-| Category | Tools | What you can do |
-|----------|------:|-----------------|
-| Tasks & Protocols | 8 | Create conversation threads, send messages, generate bioprotocols |
-| Files | 15 | Upload, download, version, fork, and manage protocol files |
-| Projects | 10 | Create projects and manage team membership |
+| Category | Commands | What you can do |
+|----------|--------:|-----------------|
+| Tasks | 8 | Create conversation threads, send messages, stream agent responses |
+| Files | 16 | Upload, download, version, fork, and manage protocol files |
+| Projects | 11 | Create projects and manage team membership |
 | Organizations | 16 | Org settings, billing, member invitations, shared library |
 | Folders | 5 | Organize files into nested folder structures |
-| Search | 3 | Full-text search across tasks, files, and all resources |
-| Admin | 14 | API keys, audit logs, account, health checks, feature flags |
+| Search | 4 | Full-text search across tasks, files, and all resources |
+| Admin | 6 | API keys, audit logs, feature flags |
+| Account | 8 | User management, legal docs, agreements |
+| Auth | 5 | Authentication, profiles, API key validation |
+| Library | 5 | Organization library management |
+| Feedback | 1 | Submit feedback |
+| Other | 8 | Health, doctor, whoami, open, completion, update, MCP serve |
 
 See the individual [skill files](skills/) for full tool reference with parameters and workflow recipes.
 

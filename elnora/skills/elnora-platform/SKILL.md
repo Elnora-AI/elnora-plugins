@@ -1,98 +1,167 @@
 ---
 name: elnora-platform
 description: >
-  Use when the user asks about Elnora platform, Elnora AI, bioprotocol generation,
-  platform API, elnora projects, elnora tasks, elnora files, protocol generation,
-  platform search, elnora orgs, elnora folders, elnora admin, API keys,
-  elnora health, elnora auth, or any task involving the Elnora AI Platform.
+  Use when the user asks about "Elnora platform", "elnora CLI",
+  "platform API", "elnora projects", "elnora tasks", "elnora files", "protocol generation",
+  "platform search", "elnora orgs", "elnora folders", "elnora admin", "API keys",
+  "elnora health", "elnora auth", or any task involving the Elnora AI Platform.
   Routes to domain-specific sub-skills for token-efficient guidance.
 ---
 
-# Elnora Platform
+# Elnora Platform CLI
 
 Route Elnora Platform queries to the correct sub-skill. Load only what is needed.
 
-## What is Elnora?
+## Invocation
 
-Elnora is an AI-powered platform that helps researchers generate, optimize, and manage bioprotocols for wet-lab experiments. This plugin connects your agent to the Elnora Platform via MCP.
+```bash
+CLI="elnora"
+```
 
-## Authentication
+Global flags go BEFORE the subcommand:
 
-Auth is handled automatically by the MCP connection:
+```bash
+$CLI --compact projects list            # correct
+$CLI projects list --compact            # WRONG -- fails
+```
 
-- **OAuth 2.1** (recommended): Browser popup on first use, tokens refresh automatically
-- **API Key**: Set as Bearer token in MCP headers (create at platform.elnora.ai > Settings > API Keys)
+## Global Flags
 
-No manual login required.
+| Flag | Effect |
+|------|--------|
+| `--compact` | Minified JSON — always use for agent workflows |
+| `--output <json\|csv>` | Output format (default: json) |
+| `--fields "id,name"` | Return only these fields |
+| `--profile <name>` | Named profile (default: `default`). Set with `auth login --api-key <KEY> --profile <name>` |
+| `--json` | Force JSON output |
 
-## Token Efficiency
+## Auth
 
-All MCP tools support two optional params for reducing token usage:
+Requires `ELNORA_API_KEY` environment variable (prefix: `elnora_live_`), `ELNORA_MCP_API_KEY`, or a saved profile in `~/.elnora/profiles.toml`.
 
-| Param | Effect |
-|-------|--------|
-| `compact: true` | Strip null/empty values (~30-40% savings). Always use in agent workflows. |
-| `fields: "id,name"` | Return only specified fields. Applied to each item in paginated results. |
+```bash
+$CLI --compact auth status
+# -> {"profile":"default","authenticated":true,"projectCount":N}
+```
+
+Get keys: platform.elnora.ai > Settings > API Keys
 
 ## Routing Table
 
 | Need | Sub-skill | Trigger keywords |
 |------|-----------|------------------|
-| List/get/create/update/archive projects, manage members | `elnora-projects` | project, workspace, create project, members |
-| Create/manage/message tasks, protocol generation | `elnora-tasks` | task, protocol, send message, generate |
-| Browse/read/upload/create/version/fork files | `elnora-files` | file, content, version history, upload, download, fork |
-| Find tasks, files, or content by keyword | `elnora-search` | search, find, query, search file content |
+| List/get/create/update/archive projects, manage members | `elnora-projects` | project, workspace, create project, members, add member |
+| Create/manage/message tasks, protocol generation | `elnora-tasks` | task, protocol, send message, conversation, generate |
+| Browse/read/upload/create/version/fork files | `elnora-files` | file, content, version history, upload, download, fork, working copy |
+| Find tasks or files by keyword | `elnora-search` | search, find, query |
 | Manage project folder trees | `elnora-folders` | folder, create folder, move folder |
 | Org management, members, billing, invitations, shared library | `elnora-orgs` | organization, org, billing, invite, library |
-| Auth, API keys, account, health, diagnostics | `elnora-admin` | api key, health, account, feedback, audit, flags |
+| Auth, API keys, account, health, diagnostics | `elnora-admin` | login, logout, profiles, api key, health, account, feedback, audit, completion |
+| Feature flags (SystemAdmin) | `elnora-admin` | feature flag, flags, set flag, list flags |
 | What can the Elnora Agent do? (tools, search, memory) | `elnora-agent` | agent capabilities, agent tools, what can agent do |
 
-## Organization Context
+## Positional Argument Convention
 
-Most org-scoped tools (projects, tasks, files, folders, search) accept an
-optional `org_id` parameter (UUID). When provided, the operation targets that
-organization instead of the user's active org. The user must be a member of the
-target org.
+Required string fields ending in `Id` (e.g. `taskId`, `projectId`, `fileId`) become positional arguments. Everything else becomes a flag.
 
-**Workflow for org switching:**
-1. Call `elnora_list_orgs` first to discover available org IDs and names
-2. Pass the target `org_id` to any org-scoped tool (e.g., `elnora_list_projects`, `elnora_create_task`)
-3. By-ID tools (get, update, archive, delete) do NOT need `org_id` — they resolve via ownership
+```bash
+elnora tasks get <task-id>              # taskId -> positional
+elnora tasks list --project <UUID>      # project -> flag (doesn't end in "Id")
+elnora files fork <file-id> --target-project <UUID>  # fileId -> positional, targetProject -> flag
+```
+
+**Rule:** positional if and only if the field is: required + not boolean + no enum choices + key ends in "Id".
 
 ## ID Format
 
-All IDs are UUIDs (e.g., `bfdc6fbd-40ed-4042-9ea7-c79a5ec90085`).
+All IDs are UUIDs: `bfdc6fbd-40ed-4042-9ea7-c79a5ec90085`. Invalid format exits 1 with a suggestion showing the correct list command.
+
+Exception: `account get` and `account update` use `userId` which accepts any string (typically an integer like `42`).
 
 ## Pagination
 
-List endpoints return paginated results:
+List endpoints return:
 
 ```json
-{"items": [...], "page": 1, "pageSize": 25, "totalCount": N, "totalPages": N, "hasNextPage": true}
+{"items":[...],"page":1,"pageSize":25,"totalCount":N,"totalPages":N,"hasNextPage":true}
 ```
 
-Use `page` and `pageSize` parameters (max 100). Check `hasNextPage` to paginate.
+Use `--page N --page-size N` (max 100). Check `hasNextPage` to paginate.
 
-Message endpoints use cursor-based pagination: check `hasMore` and pass `cursor` from `nextCursor`.
+Message endpoints use cursor-based pagination: check `hasMore` and pass `--cursor <nextCursor>`.
+
+## Error Contract
+
+Errors -> stderr, exit code > 0:
+
+```json
+{"error":"message","code":"AUTH_FAILED","suggestion":"how to fix"}
+```
+
+| Code | Exit | Action |
+|------|------|--------|
+| `AUTH_FAILED` | 3 | Check ELNORA_API_KEY env var or profile |
+| `NOT_FOUND` | 4 | Verify the UUID |
+| `VALIDATION_ERROR` | 2 | Check parameters |
+| `RATE_LIMITED` | 5 | Wait and retry (see Rate Limits below) |
+| `SERVER_ERROR` | 6 | Retry later |
+| `ELNORA_ERROR` | 1 | Unexpected — report bug |
+
+## Rate Limits
+
+HTTP 429 on limit. Check the `Retry-After` header for seconds to wait.
+
+| Context | Limit | Window |
+|---------|-------|--------|
+| API key (CLI/agent default) | 200 req | 1 min |
+| Agent processing endpoints | 100 req per task | 1 min |
+| AI processing (tasks send, protocol generate) | 20 req | 1 min |
+| Auth endpoints (login, register) | 5 req | 1 min |
+| Global fallback (per IP) | 1000 req | 1 min |
+
+**Agent strategy:** On exit code 5, read `Retry-After` from stderr if available, otherwise wait 60 seconds before retrying. Do not retry in a tight loop.
+
+## File Upload Limits
+
+| Constraint | Value |
+|-----------|-------|
+| Max file size | 100 MB |
+| Max filename length | 255 characters |
+| Max files per batch upload | 50 |
+| Accepted MIME types | Unrestricted (any type) |
+| Upload presigned URL expiry | 15 minutes |
+| Download presigned URL expiry | 5 minutes |
 
 ## Common Workflow
 
 Projects contain tasks and files. Typical flow:
 
-1. `elnora_list_projects` — get project ID
-2. `elnora_create_task` — start a conversation with Elnora AI
-3. `elnora_send_message` — describe the protocol you need
-4. `elnora_get_task_messages` — read the AI response
-5. `elnora_list_files` — browse generated outputs
-6. `elnora_get_file_content` — read a protocol file
+1. `projects list` -> get project ID
+2. `tasks create --project <ID> --message "..."` -> create task with initial prompt
+3. `tasks send <TASK_ID> --message "..." --wait` -> send message and wait for response
+4. `files list --project <ID>` -> browse generated outputs
+5. `files content <FILE_ID>` -> read a protocol file
 
-## Quick Protocol Generation
+## All Command Groups
 
-For one-shot protocol generation, use `elnora_generate_protocol`:
-
-- `description`: What protocol you need (e.g., "HEK 293 cell maintenance protocol")
-- Returns the complete generated protocol
-
-## Tool Discovery
-
-Each sub-skill lists its own MCP tools with full parameter docs and workflow recipes. Load the relevant sub-skill from the routing table above to see available tools.
+```
+elnora account      Manage user account, agreements, and legal docs
+elnora api-keys     Manage API keys and creation policy
+elnora audit        View audit logs
+elnora auth         Manage authentication
+elnora completion   Generate shell completion script
+elnora doctor       Run diagnostics (API, auth, version, config checks)
+elnora feedback     Submit feedback
+elnora files        Manage project files (incl. batch upload)
+elnora flags        Manage global feature flags (SystemAdmin)
+elnora folders      Manage project folders
+elnora health       Check platform reachability
+elnora library      Manage organization library
+elnora mcp          Run as MCP server (--http or --stdio)
+elnora open         Open platform pages in browser
+elnora orgs         Manage organizations (incl. set-default, delete, list-all)
+elnora projects     Manage projects
+elnora search       Search tasks, files, and file content
+elnora tasks        Manage tasks
+elnora whoami       Show current profile and org
+```

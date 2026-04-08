@@ -1,103 +1,222 @@
 ---
 name: elnora-orgs
 description: >
-  Use this skill when the user asks about "Elnora organizations", "org members",
-  "org billing", "org invitations", "shared library", "library folders",
-  "org settings", or any task involving Elnora organization management.
-  Covers org CRUD, membership, invitations, billing, and the shared library.
+  This skill should be used when the user asks to "list organizations", "create org",
+  "org members", "billing", "invite member", "manage invitations", "organization library",
+  "shared library", "library files", "library folders", "set default org", "delete org",
+  "list all orgs", "set stripe",
+  or any task involving Elnora Platform organization management and shared library resources.
 ---
 
-# Elnora Organizations
+# Elnora Organizations & Library
 
-Manage organizations, members, invitations, billing, and the shared org library
-via Elnora MCP tools.
+Manage organizations, members, billing, invitations, and the shared organization library.
 
-## Core Concepts
+## Invocation
 
-- **Organizations** are the top-level container. They hold projects, members, and a shared library.
-- **Members** have roles (owner, admin, member). Use the **membership ID** (not user ID) for role updates and removals.
-- **Invitations** are sent by email with a role. They can be cancelled before acceptance.
-- **Billing** is per-org. Query it to check plan, usage, and limits.
-- **Shared Library** stores org-wide files and folders accessible to all members.
+```bash
+CLI="elnora"
+```
 
-## Tools Reference
+## Organization Commands
 
-### Organization CRUD
+### List Organizations
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_list_orgs` | List all orgs the user belongs to | — |
-| `elnora_get_org` | Get org details | `org_id` |
-| `elnora_create_org` | Create a new org | `name` |
-| `elnora_update_org` | Update org settings | `org_id`, fields to update |
+```bash
+$CLI --compact orgs list
+```
 
-### Membership
+### Get Organization
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_list_org_members` | List members of an org | `org_id` |
-| `elnora_update_org_member_role` | Change a member's role | `org_id`, `membership_id`, `role` |
-| `elnora_remove_org_member` | Remove a member from org | `org_id`, `membership_id` |
+```bash
+$CLI --compact orgs get <ORG_ID>
+```
 
-**Important**: `elnora_update_org_member_role` and `elnora_remove_org_member` require the
-**membership ID**, not the user ID. Get it from `elnora_list_org_members` first.
+### Create Organization
 
-### Invitations
+```bash
+$CLI --compact orgs create --name "Elnora Bio Lab"
+$CLI --compact orgs create --name "Elnora Bio Lab" --description "Main research org"
+```
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_invite_org_member` | Invite someone by email | `org_id`, `email`, `role` |
-| `elnora_list_org_invitations` | List pending invitations | `org_id` |
-| `elnora_cancel_org_invitation` | Cancel a pending invitation | `org_id`, `invitation_id` |
+### Update Organization
 
-### Billing
+```bash
+$CLI --compact orgs update <ORG_ID> --name "New Name"
+$CLI --compact orgs update <ORG_ID> --description "Updated description"
+```
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_get_org_billing` | Get billing/plan info | `org_id` |
+Must provide at least one of `--name` or `--description`.
 
-### Shared Library
+### List Members
 
-The shared library provides org-wide file and folder storage.
+```bash
+$CLI --compact orgs members <ORG_ID>
+```
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_list_library_files` | List files in the shared library | `org_id`, optional `folder_id` |
-| `elnora_list_library_folders` | List library folders | `org_id` |
-| `elnora_create_library_folder` | Create a library folder | `org_id`, `name` |
-| `elnora_rename_library_folder` | Rename a library folder | `org_id`, `folder_id`, `name` |
-| `elnora_delete_library_folder` | Delete a library folder | `org_id`, `folder_id` |
+### Update Member Role
 
-**Warning**: `elnora_delete_library_folder` is destructive. Confirm with the user before deleting.
+```bash
+$CLI --compact orgs update-role <ORG_ID> <MEMBERSHIP_ID> --role Admin
+```
 
-## Common Workflows
+Both positional. `--role` is required. Uses the **membership ID** (not user ID) — get it from `orgs members`.
 
-### List orgs and inspect one
+### Remove Member
 
-1. `elnora_list_orgs` to get all orgs
-2. `elnora_get_org` with the chosen `org_id` for details
+```bash
+$CLI --compact orgs remove-member <ORG_ID> <MEMBERSHIP_ID>
+# -> {"removed":true}
+```
 
-### Invite a new member
+Both positional. Destructive — confirm with user first.
 
-1. `elnora_invite_org_member` with `org_id`, `email`, and `role`
-2. `elnora_list_org_invitations` to confirm the invitation was sent
+### Get Billing
 
-### Change a member's role
+```bash
+$CLI --compact orgs billing <ORG_ID>
+```
 
-1. `elnora_list_org_members` with `org_id` to find the `membership_id`
-2. `elnora_update_org_member_role` with `org_id`, `membership_id`, and new `role`
+### List Org Files (Admin Compliance View)
 
-### Manage the shared library
+```bash
+$CLI --compact orgs files <ORG_ID>
+$CLI --compact orgs files <ORG_ID> --page 2 --page-size 50
+```
 
-1. `elnora_list_library_folders` to see existing folders
-2. `elnora_create_library_folder` to add a new folder
-3. `elnora_list_library_files` with optional `folder_id` to browse contents
+`<ORG_ID>` is positional (`orgId`). Lists all files across all projects in the organization.
 
-### Check billing
+### Set Default Organization
 
-1. `elnora_list_orgs` to get the `org_id`
-2. `elnora_get_org_billing` to view plan, usage, and limits
+```bash
+$CLI --compact orgs set-default <ORG_ID>
+```
 
-## ID Format
+### Set Stripe Customer ID (SystemAdmin)
 
-All IDs are UUIDs (e.g., `bfdc6fbd-40ed-4042-9ea7-c79a5ec90085`).
+```bash
+$CLI --compact orgs set-stripe <ORG_ID> <CUSTOMER_ID>
+```
+
+Both positional. Example: `elnora --compact orgs set-stripe <ORG_ID> cus_xxx`
+
+### List All Organizations (SystemAdmin)
+
+```bash
+$CLI --compact orgs list-all
+```
+
+### Delete Organization
+
+```bash
+$CLI --compact orgs delete <ORG_ID>
+$CLI --compact orgs delete <ORG_ID> --yes
+# -> {"deleted":true,"orgId":"<UUID>"}
+```
+
+**DANGEROUS.** Requires y/N confirmation. Use `--yes` to skip (non-interactive/CI only).
+
+## Invitation Commands
+
+### Send Invitation
+
+```bash
+$CLI --compact orgs invite <ORG_ID> --email user@example.com
+$CLI --compact orgs invite <ORG_ID> --email user@example.com --role Admin
+```
+
+### List Pending Invitations
+
+```bash
+$CLI --compact orgs invitations <ORG_ID>
+```
+
+### Cancel Invitation
+
+```bash
+$CLI --compact orgs cancel-invite <ORG_ID> <INVITATION_ID>
+# -> {"cancelled":true,"invitationId":"..."}
+```
+
+Both positional.
+
+### Get Invitation Info (by token)
+
+```bash
+$CLI --compact orgs invitation-info --token <TOKEN>
+```
+
+`--token` is a flag (not positional — `token` doesn't end in "Id").
+
+### Accept Invitation
+
+```bash
+$CLI --compact orgs accept-invite --token <TOKEN>
+```
+
+`--token` is a flag.
+
+## Organization Library Commands
+
+The organization library holds shared files and folders accessible to all org members.
+
+### List Library Files
+
+```bash
+$CLI --compact library files --org <ORG_ID>
+$CLI --compact library files --org <ORG_ID> --page 2 --page-size 50
+```
+
+`--org` is a flag (`org` doesn't end in "Id").
+
+### List Library Folders
+
+```bash
+$CLI --compact library folders --org <ORG_ID>
+```
+
+### Create Library Folder
+
+```bash
+$CLI --compact library create-folder --org <ORG_ID> --name "Shared Protocols"
+$CLI --compact library create-folder --org <ORG_ID> --name "Sub Folder" --parent <PARENT_FOLDER_ID>
+```
+
+### Rename Library Folder
+
+```bash
+$CLI --compact library rename-folder --org <ORG_ID> <FOLDER_ID> --name "New Name"
+```
+
+`<FOLDER_ID>` is positional (`folderId`). `--org` and `--name` are flags.
+
+### Delete Library Folder
+
+```bash
+$CLI --compact library delete-folder --org <ORG_ID> <FOLDER_ID>
+# -> {"deleted":true,"folderId":"..."}
+```
+
+Destructive — confirm with user first.
+
+## Agent Recipes
+
+**Get org ID, then check billing:**
+
+```bash
+ORG=$($CLI --compact orgs list | jq -r 'if type == "array" then .[0].id else .items[0].id end')
+$CLI --compact orgs billing "$ORG"
+```
+
+**Invite a team member:**
+
+```bash
+$CLI --compact orgs invite <ORG_ID> --email new.researcher@lab.com --role Member
+```
+
+**Browse shared library:**
+
+```bash
+$CLI --compact library folders --org <ORG_ID>
+$CLI --compact library files --org <ORG_ID>
+```

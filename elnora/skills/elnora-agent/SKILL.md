@@ -12,16 +12,22 @@ description: >
 
 # Elnora Agent Capabilities
 
-The Elnora Agent is a sandboxed Python environment with ~78 core tools + 2,100 ToolUniverse scientific tools. Interact via `elnora_create_task` / `elnora_send_message` — describe what you need in plain language, don't reference internal tool names.
+The Elnora Agent is a sandboxed Python environment with ~78 core tools + 2,100 ToolUniverse scientific tools. Interact via `tasks create` and `tasks send` — describe what you need in plain language.
 
-## MCP Tools for Agent Interaction
+## Quick Start
 
-| Tool | Purpose |
-|------|---------|
-| `elnora_create_task` | Create a task with optional `initial_message` to start generation |
-| `elnora_send_message` | Send follow-up message. 30-120s for complex requests. |
-| `elnora_get_task_messages` | Read agent responses |
-| `elnora_generate_protocol` | Convenience: create task + send message in one call |
+```bash
+CLI="elnora"
+
+# Create a task and wait for the response
+$CLI --compact tasks create --project <PROJECT_ID> --title "My task" --message "Your request"
+
+# Send follow-up and wait for response
+$CLI --compact tasks send <TASK_ID> --message "Follow-up request" --wait
+
+# Or stream the response in real-time
+$CLI --compact tasks send <TASK_ID> --message "Follow-up request" --stream
+```
 
 ## What the Agent Can Do
 
@@ -35,25 +41,24 @@ The Elnora Agent is a sandboxed Python environment with ~78 core tools + 2,100 T
 | **Memory** (9 tools) | Remember facts across tasks, share findings between agents, recall prior context |
 | **Code execution** | Persistent Python REPL with pandas, numpy, biopython. Variables survive across executions. 30s timeout, 1MB output max |
 
-## Good Prompts
+## Example Prompts
 
-**Web research:**
-> "Search for recent CRISPR delivery methods and summarize the top findings"
+```bash
+# Web research
+$CLI --compact tasks send "$TASK" --message "Search for recent CRISPR delivery methods and summarize" --wait
 
-**Literature review:**
-> "Search PubMed for BRCA1 DNA repair papers from 2024, find the most cited ones"
+# Literature review
+$CLI --compact tasks send "$TASK" --message "Search PubMed for BRCA1 DNA repair papers from 2024" --wait
 
-**Drug target research:**
-> "Search for compounds targeting EGFR, cross-reference with active clinical trials"
+# Drug target research
+$CLI --compact tasks send "$TASK" --message "Search for compounds targeting EGFR, cross-reference with active clinical trials" --wait
 
-**Scientific computation:**
-> "Use ToolUniverse to run AlphaFold on this sequence: MVLSPADKTNVKAAWGKVGA"
+# Scientific computation
+$CLI --compact tasks send "$TASK" --message "Use ToolUniverse to run AlphaFold on this sequence: MVLSPADKTNVKAAWGKVGA" --stream
 
-**Memory:**
-> "Remember that our lab uses Q5 polymerase for all high-fidelity PCR at 62C"
+# Memory
+$CLI --compact tasks send "$TASK" --message "Remember that our lab uses Q5 polymerase for all high-fidelity PCR at 62C" --wait
 
-**File search:**
-> "Search all project files for mentions of 'annealing temperature' and summarize"
-
-**Reference existing files:**
-Use `file_ids` in `elnora_send_message` or `context_file_ids` in `elnora_create_task` to give the agent context about existing protocols.
+# Reference existing files
+$CLI --compact tasks send "$TASK" --message "Read the attached template and generate a new version" --file-refs "<FILE_ID>" --wait
+```
