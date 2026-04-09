@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.2](https://github.com/Elnora-AI/elnora-plugins/compare/elnora-plugins-v1.2.1...elnora-plugins-v1.2.2) (2026-04-09)
+
+
+### Bug Fixes
+
+* sync skills with TypeScript CLI rewrite ([7147093](https://github.com/Elnora-AI/elnora-plugins/commit/71470934659cbb447108ef3248965a96d253e2a2))
+* sync skills with TypeScript CLI rewrite and update tool counts ([ab12dfe](https://github.com/Elnora-AI/elnora-plugins/commit/ab12dfecca834fbf98d8a2f805d2cfc858f8de2e))
+
 ## [1.2.1](https://github.com/Elnora-AI/elnora-plugins/compare/elnora-plugins-v1.2.0...elnora-plugins-v1.2.1) (2026-03-23)
 
 
