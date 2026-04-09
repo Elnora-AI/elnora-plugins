@@ -1,130 +1,301 @@
 ---
 name: elnora-admin
 description: >
-  Use this skill when the user asks about "Elnora account", "API keys",
-  "audit log", "feature flags", "health check", "terms of service",
-  "platform status", "feedback", "invitation", or any Elnora platform
-  administration task.
+  This skill should be used when the user asks to "log in", "check auth", "create API key",
+  "revoke API key", "check health", "submit feedback", "view audit log",
+  "shell completions", "account details", "accept terms", "validate token", "elnora setup",
+  "api key policy", "delete account", "list users", "feature flags", "legal documents",
+  "set feature flag", "manage legal docs", "list profiles", "show profiles", "whoami",
+  "run diagnostics", "open platform",
+  or any task involving Elnora Platform authentication, administration, or diagnostics.
 ---
 
-# Elnora Admin
+# Elnora Admin & Diagnostics
 
-Platform administration tools for account management, API keys, audit logs,
-feature flags, agreements, invitations, and system health.
+Authentication, API key management, account settings, health checks, audit logs, feedback, and shell completions.
 
-## Auth
+## Invocation
 
-The Elnora MCP server handles authentication automatically via OAuth 2.1
-(browser popup) or API key bearer tokens in the MCP connection headers.
-There is no manual login/logout step — auth "just works" when the MCP
-server is configured.
+```bash
+CLI="elnora"
+```
 
-## Core Concepts
+## Authentication
 
-- **Health check** requires no authentication — use it to verify the platform is up.
-- **API keys** are shown in full **only once** at creation time. Store them securely immediately.
-- **Audit logs** track actions across the org. Filterable by org, action type, and user.
-- **Feature flags** are read-only. Use them to check what capabilities are enabled.
-- **Agreements** (terms of service) must be accepted before using certain features.
-- **Invitations** can be inspected and accepted to join an org.
+### Login
 
-## Tools Reference
+```bash
+$CLI --compact auth login --api-key <KEY>
+$CLI --compact auth login --api-key <KEY> --profile university
+```
 
-### System Health
+`--api-key` is required — there is no interactive prompt. Keys must start with `elnora_live_` and be 20+ characters. Saves to `~/.elnora/profiles.toml`.
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_health_check` | Check platform status | — (no auth required) |
+Response: `{"profile":"default","verified":true,"configPath":"/Users/<you>/.elnora/profiles.toml"}`
 
-### Account
+### Check Auth Status
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_get_account` | Get current user's account info | — |
-| `elnora_update_account` | Update account details | fields to update |
+```bash
+$CLI --compact auth status
+# -> {"profile":"default","authenticated":true,"projectCount":N}
+```
 
-### API Keys
+### Logout
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_list_api_keys` | List existing API keys | — |
-| `elnora_create_api_key` | Create a new API key | `name` |
-| `elnora_revoke_api_key` | Revoke an API key | `key_id` |
+```bash
+$CLI --compact auth logout
+$CLI --compact auth logout --all
+```
 
-**Critical**: `elnora_create_api_key` returns the full key **only once**. The key is never
-shown again. Always present it to the user immediately and remind them to store it securely.
+Without `--all`, removes the current profile. With `--all`, removes all saved profiles from `profiles.toml`.
 
-### Agreements
+### List Profiles
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_list_agreements` | List terms/agreements | — |
-| `elnora_accept_terms` | Accept terms of service | `agreement_id` |
+```bash
+$CLI --compact auth profiles
+# -> {"profiles":[{"name":"default","apiKey":"elnora_live_...abcd"}]}
+```
 
-### Feedback
+Shows all configured profiles with masked API keys.
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_submit_feedback` | Submit platform feedback | `message`, optional `type` |
+### Validate Token
 
-### Audit Log
+```bash
+$CLI --compact auth validate
+$CLI --compact auth validate --token <TOKEN>
+```
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_list_audit_log` | Query audit events | `org_id`, optional filters |
+Validates the current API key (or a specific token).
 
-Filters may include action type, user, and date range. Always scope to a specific
-`org_id` to get relevant results.
+### Who Am I
 
-### Feature Flags
+```bash
+$CLI whoami
+$CLI --json whoami
+```
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_list_flags` | List all feature flags | — |
-| `elnora_get_flag` | Get a specific flag's value | `flag_name` |
+Shows current profile, masked API key, and organization name.
 
-Feature flags are **read-only**. Use them to check whether a feature is enabled
-before attempting to use it.
+## API Key Management
 
-### Invitations
+### Create API Key
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_get_invitation_info` | Inspect an invitation | `invitation_id` |
-| `elnora_accept_invitation` | Accept an org invitation | `invitation_id` |
+```bash
+$CLI --compact api-keys create --name "CI Pipeline"
+$CLI --compact api-keys create --name "Agent Key" --scopes "read,write"
+```
 
-## Common Workflows
+**IMPORTANT:** The key value is only shown once in the response. Store it securely.
 
-### Check platform health
+### List API Keys
 
-1. `elnora_health_check` — no auth needed, confirms the API is reachable
+```bash
+$CLI --compact api-keys list
+```
 
-### Create and store an API key
+### Revoke API Key
 
-1. `elnora_create_api_key` with a descriptive `name`
-2. **Immediately** present the returned key to the user
-3. Remind them this is the only time the full key is shown
+```bash
+$CLI --compact api-keys revoke <KEY_ID>
+# -> {"revoked":true,"keyId":"..."}
+```
 
-### Review audit activity
+Destructive — confirm with user first.
 
-1. `elnora_list_audit_log` with `org_id` and any desired filters
-2. Paginate if needed — check response for pagination fields
+### Get API Key Policy
 
-### Check feature availability
+```bash
+$CLI --compact api-keys get-policy
+# -> {"policy":"all_members"}
+```
 
-1. `elnora_list_flags` to see all flags, or `elnora_get_flag` for a specific one
-2. Use the flag value to decide whether to proceed with a feature
+### Set API Key Policy
 
-### Accept an invitation
+```bash
+$CLI --compact api-keys set-policy --policy admins_only
+$CLI --compact api-keys set-policy --policy all_members
+```
 
-1. `elnora_get_invitation_info` with `invitation_id` to review details
-2. `elnora_accept_invitation` to join the org
+Org admin/owner only. Values: `all_members` or `admins_only`.
 
-### View and accept terms
+## Account Management
 
-1. `elnora_list_agreements` to see pending agreements
-2. `elnora_accept_terms` with the `agreement_id` to accept
+### Get Account
 
-## ID Format
+```bash
+$CLI --compact account get <USER_ID>
+```
 
-All IDs are UUIDs (e.g., `bfdc6fbd-40ed-4042-9ea7-c79a5ec90085`).
+`<USER_ID>` is positional. Get user IDs from `account users`.
+
+### Update Account
+
+```bash
+$CLI --compact account update <USER_ID> --first-name Jane --last-name Doe
+```
+
+Must provide at least one of `--first-name` or `--last-name`.
+
+### List Agreements
+
+```bash
+$CLI --compact account agreements
+```
+
+### Accept Terms
+
+```bash
+$CLI --compact account accept-terms <DOCUMENT_VERSION_ID>
+```
+
+`<DOCUMENT_VERSION_ID>` is positional.
+
+### Delete Account
+
+```bash
+$CLI --compact account delete
+$CLI --compact account delete --yes
+```
+
+**DANGEROUS: Permanently deletes the user's account. Irreversible.**
+Requires typing "DELETE" to confirm. Use `--yes` to skip (non-interactive/CI only).
+
+### List Users (SystemAdmin)
+
+```bash
+$CLI --compact account users
+$CLI --compact account users --state Active
+$CLI --compact account users --state Deleted --ref-code ABC123
+```
+
+Optional filters: `--state` (Active, Pending, Deleted), `--ref-code`.
+
+### Add Legal Document Version (SystemAdmin)
+
+```bash
+$CLI --compact account add-legal-doc --document-type TermsOfService --version "2.0" --content "Terms text..." --effective-date 2026-04-01
+```
+
+| Flag | Required | Notes |
+|------|----------|-------|
+| `--document-type` | Yes | e.g. TermsOfService, PrivacyPolicy |
+| `--version` | Yes | Version string |
+| `--content` | Yes | Document content |
+| `--effective-date` | No | ISO 8601 date |
+
+### Update Legal Document Version (SystemAdmin)
+
+```bash
+$CLI --compact account update-legal-doc <VERSION_ID> --content "Updated terms..."
+$CLI --compact account update-legal-doc <VERSION_ID> --effective-date 2026-05-01
+```
+
+`<VERSION_ID>` is positional. Must provide at least one of `--content` or `--effective-date`.
+
+### Delete Legal Document Version (SystemAdmin)
+
+```bash
+$CLI --compact account delete-legal-doc <VERSION_ID> --yes
+```
+
+`<VERSION_ID>` is positional. Requires confirmation unless `--yes`.
+
+## Feature Flags (SystemAdmin)
+
+### List Feature Flags
+
+```bash
+$CLI --compact flags list
+```
+
+### Get Feature Flag
+
+```bash
+$CLI --compact flags get --key enable-new-editor
+```
+
+`--key` is a required flag (not positional).
+
+### Set Feature Flag
+
+```bash
+$CLI --compact flags set --key enable-new-editor --value true --yes
+```
+
+| Flag | Required | Notes |
+|------|----------|-------|
+| `--key` | Yes | Flag key name |
+| `--value` | Yes | `true` or `false` |
+| `--yes` | No | Skip confirmation prompt |
+
+**WARNING: Affects ALL users on the platform.** Always use `--yes` in agent context.
+
+## Health & Diagnostics
+
+### Health Check
+
+```bash
+$CLI health
+```
+
+No auth required. Returns `{"status":"ok","timestamp":"..."}` on success. Exits 1 if unreachable (network error).
+
+### Doctor
+
+```bash
+$CLI doctor
+```
+
+Runs diagnostic checks: API reachability, authentication, version currency, config permissions, AI server reachability.
+
+### Open Platform
+
+```bash
+elnora open              # Opens platform (default)
+elnora open docs         # Opens documentation
+elnora open keys         # Opens API keys page
+elnora open billing      # Opens billing page
+elnora open github       # Opens GitHub repo
+```
+
+## Audit Log
+
+```bash
+$CLI --compact audit list --org <ORG_ID>
+$CLI --compact audit list --org <ORG_ID> --action "project.created" --user-id <USER_ID>
+$CLI --compact audit list --org <ORG_ID> --page 2 --page-size 50
+```
+
+`--org` is a required flag. Optional filters: `--action`, `--user-id`.
+
+## Feedback
+
+```bash
+$CLI --compact feedback submit --title "Feature request" --description "Add batch export"
+```
+
+Both `--title` and `--description` are required.
+
+## Shell Completions
+
+```bash
+elnora completion bash >> ~/.bashrc
+elnora completion zsh >> ~/.zshrc
+elnora completion fish > ~/.config/fish/completions/elnora.fish
+```
+
+## Agent Recipes
+
+**Verify setup:**
+
+```bash
+$CLI health && $CLI --compact auth status
+```
+
+**Rotate an API key:**
+
+```bash
+$CLI --compact api-keys create --name "Replacement Key"
+# Update .env with the new key, then:
+$CLI --compact api-keys revoke <OLD_KEY_ID>
+```

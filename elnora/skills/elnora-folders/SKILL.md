@@ -1,72 +1,82 @@
 ---
 name: elnora-folders
 description: >
-  Use this skill when the user asks about "Elnora folders", "project folders",
-  "organize files", "move folder", "create folder", "rename folder",
-  "delete folder", or any task involving folder management within Elnora projects.
+  This skill should be used when the user asks to "create folder", "list folders",
+  "rename folder", "move folder", "delete folder", "organize files into folders",
+  or any task involving Elnora Platform project folder management.
 ---
 
 # Elnora Folders
 
-Manage folders within Elnora projects via MCP tools. Folders organize files
-hierarchically inside a project.
+Manage the folder tree within Elnora projects.
 
-## Organization Context
+## Invocation
 
-All folder tools accept an optional `org_id` parameter (UUID). When provided,
-the operation targets that organization instead of the user's active org. The
-user must be a member of the target org.
+```bash
+CLI="elnora"
+```
 
-## Core Concepts
+## Commands
 
-- **Folders** exist within a project and organize files into a hierarchy.
-- Folders can be nested — a folder can have a **parent folder**.
-- Moving a folder to root means setting no parent.
-- **Deleting a folder is destructive** — always confirm with the user before proceeding.
+### List Folders
 
-## Tools Reference
+```bash
+$CLI --compact folders list <PROJECT_ID>
+```
 
-| Tool | Purpose | Key Parameters |
-|------|---------|----------------|
-| `elnora_list_folders` | List folders in a project | `project_id` |
-| `elnora_create_folder` | Create a new folder | `project_id`, `name`, optional `parent_id` |
-| `elnora_rename_folder` | Rename a folder | `project_id`, `folder_id`, `name` |
-| `elnora_move_folder` | Move a folder to a new parent | `project_id`, `folder_id`, optional `parent_id` |
-| `elnora_delete_folder` | Delete a folder | `project_id`, `folder_id` |
+`<PROJECT_ID>` is positional (`projectId`). Returns the folder tree for the project.
 
-### Parameter Details
+### Create Folder
 
-- **`project_id`** (required): The UUID of the project containing the folders.
-- **`folder_id`** (required for rename/move/delete): The UUID of the target folder.
-- **`parent_id`** (optional): The UUID of the parent folder. Omit to place at root level.
-- **`name`** (required for create/rename): The folder name.
+```bash
+$CLI --compact folders create <PROJECT_ID> --name "Experiments"
+$CLI --compact folders create <PROJECT_ID> --name "Sub Folder" --parent-id <PARENT_FOLDER_ID>
+```
 
-## Common Workflows
+| Flag/Arg | Required | Notes |
+|----------|----------|-------|
+| `<PROJECT_ID>` | Yes | Positional — project UUID |
+| `--name` | Yes | Folder name |
+| `--parent-id` | No | Parent folder UUID for nesting (optional, so it's a flag) |
 
-### Browse project folder structure
+### Rename Folder
 
-1. `elnora_list_folders` with `project_id` to see all folders and their hierarchy
+```bash
+$CLI --compact folders rename <FOLDER_ID> --name "New Name"
+```
 
-### Create a nested folder
+### Move Folder
 
-1. `elnora_list_folders` to find the parent folder's ID
-2. `elnora_create_folder` with `project_id`, `name`, and `parent_id`
+```bash
+$CLI --compact folders move <FOLDER_ID> <NEW_PARENT_ID>
+$CLI --compact folders move <FOLDER_ID> root
+```
 
-### Move a folder to root
+Both `<FOLDER_ID>` and `<NEW_PARENT_ID>` are positional (`folderId` and `parentId`). Use `root` to move to the project root level.
 
-1. `elnora_move_folder` with `project_id` and `folder_id`, omitting `parent_id`
+### Delete Folder
 
-### Reorganize folders
+```bash
+$CLI --compact folders delete <FOLDER_ID>
+# -> {"deleted":true,"folderId":"<UUID>"}
+```
 
-1. `elnora_list_folders` to see current structure
-2. `elnora_move_folder` to relocate folders as needed
-3. `elnora_rename_folder` to update names if required
+Destructive — confirm with user before running.
 
-### Delete a folder
+## Agent Recipes
 
-1. **Confirm with the user first** — deletion is destructive
-2. `elnora_delete_folder` with `project_id` and `folder_id`
+**Set up folder structure for a new project:**
 
-## ID Format
+```bash
+PROJECT="<PROJECT_ID>"
+$CLI --compact folders create "$PROJECT" --name "Protocols"
+$CLI --compact folders create "$PROJECT" --name "Data"
+$CLI --compact folders create "$PROJECT" --name "Reports"
+```
 
-All IDs are UUIDs (e.g., `bfdc6fbd-40ed-4042-9ea7-c79a5ec90085`).
+**Move a file into a folder:**
+
+```bash
+$CLI --compact folders list <PROJECT_ID>
+$CLI --compact files update <FILE_ID> --folder <FOLDER_ID>
+```

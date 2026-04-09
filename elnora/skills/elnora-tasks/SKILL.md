@@ -9,195 +9,169 @@ description: >
 
 # Elnora Tasks
 
-Tasks are conversation threads with the Elnora AI Platform. Each task is a chat where you send messages and receive AI-generated protocol responses. Use tasks to generate, iterate on, and refine bioprotocols.
+Tasks are conversations with the Elnora AI Agent. Send messages to generate protocols, iterate on outputs, and reference uploaded files.
 
-## Organization Context
+## Response Retrieval
 
-All list and create tools accept an optional `org_id` parameter (UUID). When
-provided, the operation targets that organization instead of the user's active
-org. The user must be a member of the target org.
+The Elnora backend processes agent responses asynchronously. When you send a message, the POST returns immediately with the user message echo — the AI response arrives separately.
 
-## Concepts
+The CLI provides three modes for retrieving agent responses:
 
-- **Task**: A conversation thread tied to a project. Has a title, status, and message history.
-- **Message**: A single turn in the conversation. Each has a `role` (user or assistant), `sequence` number, optional `attachments`, and `content`.
-- **Protocol generation**: Create a task, send a message describing what you need, and the assistant responds with a generated protocol. Iterate by sending follow-up messages.
-- **All IDs are UUIDs** (e.g., `bfdc6fbd-40ed-4042-9ea7-c79a5ec90085`).
+| Mode | Flag | Behavior | Timeout |
+|------|------|----------|---------|
+| Fire-and-forget | _(default)_ | Returns immediately, no response | — |
+| Polling | `--wait` | Auto-polls every 2s until assistant message appears | 120s |
+| Streaming | `--stream` | Real-time SSE token-by-token output | 300s |
 
-## MCP Tools
+**MCP mode** (`elnora_tasks_send`): Always collects the full response automatically via streaming, with polling as fallback. The caller receives `{ sent, taskId, response }` with the complete assistant content.
 
-### elnora_list_tasks
+**Recommended:** Use `--wait` for simple interactions, `--stream` for long responses where you want real-time output.
 
-List tasks, optionally filtered by project or status.
+## Invocation
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `project_id` | uuid | No | - | Filter by project UUID |
-| `status` | string | No | - | Filter by status (e.g., "active", "completed") |
-| `page` | integer | No | 1 | Page number (min: 1) |
-| `page_size` | integer | No | 25 | Results per page (min: 1, max: 100) |
-
-Returns paginated results:
-
-```json
-{
-  "items": [
-    {
-      "id": "<UUID>",
-      "projectId": "<UUID>",
-      "title": "...",
-      "status": "active",
-      "messageCount": 4,
-      "lastMessageAt": "...",
-      "createdAt": "..."
-    }
-  ],
-  "page": 1,
-  "pageSize": 25,
-  "totalCount": 12,
-  "totalPages": 1,
-  "hasNextPage": false
-}
+```bash
+CLI="elnora"
 ```
 
-### elnora_get_task
+## Commands
 
-Get full details for a single task.
+### List Tasks
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `task_id` | uuid | Yes | Task UUID |
-
-Returns task detail including metadata, status, and associated project. Use this to inspect a task before reading its messages.
-
-### elnora_create_task
-
-Create a new task (conversation thread).
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `project_id` | uuid | No | Project UUID to create the task in |
-| `title` | string | No | Task title (max 200 chars; auto-generated if omitted) |
-| `initial_message` | string | No | Initial message to start the conversation (max 50,000 chars) |
-| `context_file_ids` | uuid[] | No | File UUIDs to attach as context |
-
-Returns the created task object with its `id`. Use this ID for all subsequent operations (send messages, get messages, update, archive).
-
-To start protocol generation immediately, provide `initial_message`. To create an empty task for later use, omit it.
-
-### elnora_send_message
-
-Send a message to a task and receive the AI response. **May take 30-120 seconds** for complex protocol generation requests.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `task_id` | uuid | Yes | Task UUID |
-| `message` | string | Yes | Message content, markdown supported (min: 1, max: 50,000 chars) |
-| `file_ids` | uuid[] | No | File UUIDs to attach as context |
-
-Returns the AI response. Use `file_ids` to reference uploaded files (templates, datasets) that should inform the protocol generation.
-
-### elnora_get_task_messages
-
-Get message history for a task. Uses cursor-based pagination.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `task_id` | uuid | Yes | - | Task UUID |
-| `limit` | integer | No | 50 | Max messages to return (min: 1, max: 100) |
-| `cursor` | string | No | - | Cursor from previous response for pagination |
-
-Returns:
-
-```json
-{
-  "items": [
-    {
-      "id": "<UUID>",
-      "role": "user",
-      "content": "Generate a PCR protocol for BRCA1 exon 11",
-      "sequence": 1,
-      "createdAt": "...",
-      "attachments": []
-    },
-    {
-      "id": "<UUID>",
-      "role": "assistant",
-      "content": "# PCR Protocol for BRCA1 Exon 11\n...",
-      "metadata": "{\"status\":\"completed\"}",
-      "sequence": 2,
-      "createdAt": "...",
-      "attachments": []
-    }
-  ],
-  "nextCursor": null,
-  "hasMore": false
-}
+```bash
+$CLI --compact tasks list
+$CLI --compact tasks list --project <PROJECT_ID>
+$CLI --compact tasks list --project <PROJECT_ID> --page 2 --page-size 50
 ```
 
-Messages are ordered by `sequence`. If `hasMore` is true, pass `nextCursor` as `cursor` in the next call.
+Pagination: `--page` (default 1), `--page-size` (default 25, max 100).
 
-### elnora_update_task
+Response:
 
-Update a task's title or status.
+```json
+{"items":[{"id":"<UUID>","projectId":"<UUID>","title":"...","status":"active","messageCount":4,"lastMessageAt":"...","createdAt":"..."}],"page":1,"totalCount":N,"hasNextPage":false}
+```
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `task_id` | uuid | Yes | Task UUID |
-| `title` | string | No | New title (max 200 chars) |
-| `status` | string | No | New status |
+### Get Task
 
-Must provide at least one of `title` or `status`.
+```bash
+$CLI --compact tasks get <TASK_ID>
+```
 
-### elnora_archive_task
+Returns full task detail. Use this to inspect a task before interacting.
 
-Archive (permanently delete) a task. **This is destructive and cannot be undone.** Always confirm with the user before calling.
+### Create Task
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `task_id` | uuid | Yes | Task UUID |
+```bash
+$CLI --compact tasks create --project <PROJECT_ID> --title "PCR protocol for BRCA1" --message "Generate a simple PCR protocol for BRCA1 exon 11"
+```
 
-## Agent Workflow Recipes
+| Flag | Required | Notes |
+|------|----------|-------|
+| `--project` | Yes | Project UUID |
+| `--title` | No | Task title (auto-generated if omitted) |
+| `--message` | No | Initial message to start the conversation |
 
-### Generate a protocol (full flow)
+Returns the created task with its `id`. If `--message` is provided, the agent will process it asynchronously — use `tasks send --wait` or `tasks messages` to retrieve the response.
 
-1. Find or create a project:
-   - Call `elnora_list_projects` to get a project ID
-   - Or call `elnora_create_project` if needed
-2. Create a task with an initial prompt:
-   - Call `elnora_create_task` with `project_id`, `title`, and `initial_message`
-   - Save the returned task `id`
-3. Read the AI response:
-   - Call `elnora_get_task_messages` with the task ID
-   - Look for the message with `role: "assistant"`
-4. Iterate on the output:
-   - Call `elnora_send_message` with refinement instructions
-   - Read updated messages to see the new response
+### Send Message
 
-### Quick protocol generation (shortcut)
+```bash
+# Fire-and-forget (returns immediately)
+$CLI --compact tasks send <TASK_ID> --message "Use Taq polymerase and set annealing to 58C"
 
-For simple one-shot generation, use `elnora_generate_protocol` instead:
+# Wait for agent response (polls until complete, 120s timeout)
+$CLI --compact tasks send <TASK_ID> --message "Use Taq polymerase" --wait
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `description` | string | Yes | Protocol description (min: 10, max: 5,000 chars) |
-| `title` | string | No | Task title (max 200 chars) |
+# Stream response in real-time via SSE
+$CLI --compact tasks send <TASK_ID> --message "Use Taq polymerase" --stream
 
-This creates a task, sends the description, waits for the response, and returns the result in one call. Takes 30-120 seconds. Use the full flow above when you need to iterate.
+# Reference uploaded files
+$CLI --compact tasks send <TASK_ID> --message "Optimize based on this template" --file-refs "<FILE_ID_1>,<FILE_ID_2>"
+```
 
-### Check the latest assistant response
+| Flag | Required | Notes |
+|------|----------|-------|
+| `--message` | Yes | Message content |
+| `--file-refs` | No | Comma-separated file UUIDs to attach as context |
+| `--wait` | No | Poll for agent response (120s timeout) |
+| `--stream` | No | Stream agent response in real-time via SSE |
 
-1. Call `elnora_get_task_messages` with `limit: 2`
-2. Find the message where `role` is `"assistant"` -- this is the most recent AI output
+**Streaming details:** Status events (thinking, tool use) go to stderr, content tokens go to stdout. This makes streaming pipeable: `elnora tasks send ... --stream > response.txt`.
 
-### Iterate on a protocol with file context
+SSE event types: `think`, `tool_start`, `tool_end`, `progress`, `token`, `completed`, `error`, `timeout`.
 
-1. Get the file ID from `elnora_list_files` or `elnora_search_files`
-2. Call `elnora_send_message` with the task ID, your refinement message, and `file_ids` containing the reference file
-3. The AI will use the file content to inform its response
+### Get Messages
 
-### Pagination for long conversations
+```bash
+$CLI --compact tasks messages <TASK_ID>
+$CLI --compact tasks messages <TASK_ID> --limit 10
+$CLI --compact tasks messages <TASK_ID> --cursor <CURSOR>
+```
 
-1. Call `elnora_get_task_messages` with `limit: 50`
-2. If `hasMore` is `true`, call again with `cursor` set to `nextCursor`
-3. Repeat until `hasMore` is `false`
+Response — messages ordered by `sequence`, with `role` (user/assistant):
+
+```json
+{"items":[{"id":"<UUID>","role":"user","content":"...","sequence":1,"createdAt":"..."},{"id":"<UUID>","role":"assistant","content":"...","metadata":"{\"status\":\"completed\"}","sequence":2,"createdAt":"..."}],"nextCursor":null,"hasMore":false}
+```
+
+Cursor-based pagination: if `hasMore` is true, pass `nextCursor` as `--cursor`. Default limit is 50 (max 100).
+
+### Update Task
+
+```bash
+$CLI --compact tasks update <TASK_ID> --title "Updated title"
+$CLI --compact tasks update <TASK_ID> --status completed
+```
+
+Must provide at least one of `--title` or `--status`.
+
+### Archive Task
+
+```bash
+$CLI --compact tasks archive <TASK_ID>
+# -> {"archived":true,"taskId":"<UUID>"}
+```
+
+Destructive — confirm with user before running.
+
+## MCP Tool Names
+
+All commands are auto-registered as MCP tools with the `elnora_` prefix:
+
+| CLI command | MCP tool name |
+|-------------|---------------|
+| `tasks list` | `elnora_tasks_list` |
+| `tasks get` | `elnora_tasks_get` |
+| `tasks create` | `elnora_tasks_create` |
+| `tasks send` | `elnora_tasks_send` |
+| `tasks messages` | `elnora_tasks_messages` |
+| `tasks update` | `elnora_tasks_update` |
+| `tasks archive` | `elnora_tasks_archive` |
+
+MCP tools accept the same parameters as CLI flags (camelCase). `elnora_tasks_send` always waits for the full agent response.
+
+## Agent Recipes
+
+**Full protocol generation with --wait:**
+
+```bash
+PROJECT=$($CLI --compact --fields "id" projects list | jq -r '.items[0].id')
+TASK=$($CLI --compact tasks create --project "$PROJECT" --title "PCR BRCA1" --message "Generate PCR protocol for BRCA1 exon 11" | jq -r '.id')
+$CLI --compact tasks send "$TASK" --message "Add gel electrophoresis step" --wait
+```
+
+**Read latest assistant response:**
+
+```bash
+$CLI --compact tasks messages <TASK_ID> | jq '.items[-1] | select(.role == "assistant") | .content'
+```
+
+**Manual polling (custom timeout/retry):**
+
+```bash
+# Poll until the last message is from the assistant
+LAST=$($CLI --compact tasks messages <TASK_ID> | jq '.items[-1]')
+echo "$LAST" | jq '{role: .role, status: (.metadata | fromjson? // {} | .status)}'
+# -> {"role":"assistant","status":"completed"}  <- ready
+# -> {"role":"user","status":null}              <- still processing
+```
