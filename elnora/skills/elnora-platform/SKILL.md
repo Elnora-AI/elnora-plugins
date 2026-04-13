@@ -35,6 +35,10 @@ $CLI projects list --compact            # also works for most commands
 | `--profile <name>` | Named profile (default: `default`). Set with `auth login --api-key <KEY> --profile <name>` |
 | `--json` | Force JSON output |
 
+## Updates
+
+On first use in a session, run `elnora update` to check for updates. If an update is available, inform the user and offer to run `elnora update --install`.
+
 ## Auth
 
 Requires `ELNORA_API_KEY` environment variable (prefix: `elnora_live_`), `ELNORA_MCP_API_KEY`, or a saved profile in `~/.elnora/profiles.toml`.
@@ -136,12 +140,14 @@ HTTP 429 on limit. Check the `Retry-After` header for seconds to wait.
 
 Projects contain tasks and files. Typical flow:
 
-1. `projects list` -> get project ID
+1. `--compact --fields "id,name" projects list` -> list projects, pick one by name
 2. `tasks create --project <ID> --message "..." --stream` -> create task and stream the agent response
 3. `tasks send <TASK_ID> --message "..." --stream` -> send follow-up and stream response
 4. `tasks messages <TASK_ID>` -> read conversation history (or use `--wait` instead of `--stream` in steps 2-3)
 5. `files list --project <ID>` -> browse generated outputs
 6. `files content <FILE_ID>` -> read a protocol file
+
+**Project ID:** List projects once (step 1), pick the one matching the user's context, and reuse the ID for all subsequent commands. Don't re-list projects for every task.
 
 See `elnora-tasks` skill for full response retrieval details (`--stream`, `--wait`, MCP behavior).
 
@@ -167,6 +173,6 @@ elnora projects     Manage projects
 elnora search       Search tasks, files, and file content
 elnora setup        Configure AI coding tools (Claude Code, Cursor, VS Code, Codex)
 elnora tasks        Manage tasks
-elnora update       Self-update the CLI to the latest version
+elnora update       Check for updates (use --install to apply)
 elnora whoami       Show current profile and org
 ```
