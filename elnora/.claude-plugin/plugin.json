@@ -10,7 +10,14 @@
   "repository": "https://github.com/Elnora-AI/elnora-plugins",
   "homepage": "https://elnora.ai",
   "license": "Apache-2.0",
-  "keywords": ["bioprotocol", "lab", "pharma", "life-sciences", "protocol-generation", "mcp"],
+  "keywords": [
+    "bioprotocol",
+    "lab",
+    "pharma",
+    "life-sciences",
+    "protocol-generation",
+    "mcp"
+  ],
   "mcpServers": {
     "elnora": {
       "type": "http",
