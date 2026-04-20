@@ -1,26 +1,52 @@
 # Elnora Plugins — AI-Powered Bioprotocol Generation
 
-The [Elnora AI Platform](https://elnora.ai) for generating, optimizing, and managing bioprotocols for wet-lab experiments. This marketplace provides plugins with MCP server + [Agent Skills](https://agentskills.io) for use across 30+ AI coding tools.
+The [Elnora AI Platform](https://elnora.ai) for generating, optimizing, and managing bioprotocols for wet-lab experiments. This marketplace provides a Claude Code plugin with 9 skills + an MCP server declaration.
 
-## Quick Start (Claude Code)
+## Installation (Claude Code)
+
+There are three paths, depending on your setup. Path 1 is recommended.
+
+### Path 1: CLI + Plugin (recommended)
+
+One command installs everything — CLI, plugin (skills + MCP), authentication:
+
+```bash
+curl -fsSL https://cli.elnora.ai/install.sh | bash    # macOS/Linux
+irm https://cli.elnora.ai/install.ps1 | iex           # Windows
+npm install -g @elnora-ai/cli                          # npm
+brew install elnora-ai/cli/elnora                      # Homebrew
+```
+
+The installer prompts for your API key, then `elnora setup claude` registers the plugin. First MCP use triggers OAuth (one browser click), then cached.
+
+### Path 2: Plugin only — OAuth in browser
+
+Prefer browser-based OAuth, or running without a CLI? Install the plugin alone. In Claude Code:
 
 ```
-claude plugin marketplace add https://github.com/Elnora-AI/elnora-plugins.git
-claude plugin install elnora@elnora-plugins
+/plugin
+# Choose: Add marketplace → Elnora-AI/elnora-plugins
+/plugin
+# Choose: Enable → elnora
 ```
 
-Or from inside a Claude Code session:
+Plugin provides: 9 skills + MCP declaration. Say "Use Elnora to list projects" — Claude invokes MCP, triggers OAuth on first use, then cached. No CLI needed.
 
+### Path 3: Advanced — API key MCP (CI / skip OAuth)
+
+If you prefer API key auth over OAuth (useful for CI or non-interactive environments):
+
+```bash
+claude mcp add elnora --transport http --scope user \
+  https://mcp.elnora.ai/mcp \
+  --header "X-API-Key: <your-key-from-platform.elnora.ai>"
 ```
-/plugin marketplace add https://github.com/Elnora-AI/elnora-plugins.git
-/plugin install elnora@elnora-plugins
-```
 
-This installs the Elnora MCP server and all skills automatically.
+Use this instead of the plugin's built-in MCP declaration. If the plugin is also enabled, you'll have two entries named "elnora" — pick one or the other, don't enable both.
 
-## Setup for Other Platforms
+## Installation (other platforms)
 
-Every platform needs two things: (1) the MCP server connection and (2) the skill files copied into the platform's skills directory.
+For Cursor, Codex, VS Code Copilot, Gemini CLI, and any other MCP-compatible client, configure the Elnora MCP server as follows.
 
 ### MCP Server Config
 
