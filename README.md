@@ -19,9 +19,9 @@ brew install elnora-ai/cli/elnora                      # Homebrew
 
 The installer prompts for your API key, then `elnora setup claude` registers the plugin. First MCP use triggers OAuth (one browser click), then cached.
 
-### Path 2: Plugin only (no CLI — enterprise users)
+### Path 2: Plugin only — OAuth in browser
 
-If your organization doesn't let you install CLIs, you can use the plugin alone. In Claude Code:
+Prefer browser-based OAuth, or running without a CLI? Install the plugin alone. In Claude Code:
 
 ```
 /plugin
@@ -46,9 +46,7 @@ Use this instead of the plugin's built-in MCP declaration. If the plugin is also
 
 ## Installation (other platforms)
 
-Multi-platform skill distribution (Cursor, Codex, VS Code Copilot) is planned but not yet implemented. Those platforms currently use MCP only — see below for platform-specific MCP config.
-
-### Setup for MCP-only platforms
+For Cursor, Codex, VS Code Copilot, Gemini CLI, and any other MCP-compatible client, configure the Elnora MCP server as follows.
 
 ### MCP Server Config
 
