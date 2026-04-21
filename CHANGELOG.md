@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.3](https://github.com/Elnora-AI/elnora-plugins/compare/elnora-plugins-v1.2.2...elnora-plugins-v1.2.3) (2026-04-21)
+
+
+### Bug Fixes
+
+* **commands:** refresh `/elnora:protocol` slash command to use the renamed MCP tool names ([#19](https://github.com/Elnora-AI/elnora-plugins/issues/19))
+* **skills:** use underscore tool names in agent skill warning ([46a0558](https://github.com/Elnora-AI/elnora-plugins/commit/46a0558573ae028ad9a6a7bfbdc688ff13a41f67))
+
 ## [1.2.2](https://github.com/Elnora-AI/elnora-plugins/compare/elnora-plugins-v1.2.1...elnora-plugins-v1.2.2) (2026-04-09)
 
 
