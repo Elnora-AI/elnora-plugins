@@ -8,13 +8,30 @@ There are three paths, depending on your setup. Path 1 is recommended.
 
 ### Path 1: CLI + Plugin (recommended)
 
-One command installs everything — CLI, plugin (skills + MCP), authentication:
+One command installs everything — CLI, plugin (skills + MCP), authentication. Pick the line for your OS or package manager:
+
+**macOS / Linux**
 
 ```bash
-curl -fsSL https://cli.elnora.ai/install.sh | bash    # macOS/Linux
-irm https://cli.elnora.ai/install.ps1 | iex           # Windows
-npm install -g @elnora-ai/cli                          # npm
-brew install elnora-ai/cli/elnora                      # Homebrew
+curl -fsSL https://cli.elnora.ai/install.sh | bash
+```
+
+**Windows**
+
+```powershell
+irm https://cli.elnora.ai/install.ps1 | iex
+```
+
+**npm (any OS with Node.js 20+)**
+
+```bash
+npm install -g @elnora-ai/cli
+```
+
+**Homebrew (macOS / Linux)**
+
+```bash
+brew install elnora-ai/cli/elnora
 ```
 
 The installer prompts for your API key, then `elnora setup claude` registers the plugin. First MCP use triggers OAuth (one browser click), then cached.
@@ -127,6 +144,7 @@ The Elnora MCP server supports two authentication methods:
 | `elnora-folders` | Create, rename, move, and delete project folders |
 | `elnora-search` | Search across files, tasks, and all resources in the platform |
 | `elnora-admin` | Manage API keys, audit logs, and administrative operations |
+| `elnora-agent` | Run scientific tools and literature lookups (PubMed, ArXiv, web search) via the cloud agent |
 
 ## Links
 
