@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.4](https://github.com/Elnora-AI/elnora-plugins/compare/elnora-plugins-v1.2.3...elnora-plugins-v1.2.4) (2026-07-14)
+
+
+### Bug Fixes
+
+* correct MCP auth docs and add the missing elnora-review skill ([7a1e365](https://github.com/Elnora-AI/elnora-plugins/commit/7a1e365d16c82d1adbff627c5838421b9bff8c9a))
+* correct MCP auth docs and add the missing elnora-review skill ([86bc7a6](https://github.com/Elnora-AI/elnora-plugins/commit/86bc7a61844283fd359fd25aae1989278b7d52c4))
+
 ## [1.2.3](https://github.com/Elnora-AI/elnora-plugins/compare/elnora-plugins-v1.2.2...elnora-plugins-v1.2.3) (2026-04-21)
 
 
