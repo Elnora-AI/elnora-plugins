@@ -1,0 +1,7 @@
+# gitleaks config for elnora-plugins.
+# Extend the built-in ruleset. This repository ships client-side plugin
+# configuration and Agent Skills only — no source secrets and no vendored
+# files with token-shaped example strings — so there is nothing to allow-list.
+# Add a [[rules.allowlist]] path here if that ever changes.
+[extend]
+useDefault = true
