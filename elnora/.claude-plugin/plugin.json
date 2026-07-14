@@ -1,6 +1,6 @@
 {
   "name": "elnora",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "AI-powered bioprotocol generation and lab workflow management. Connect to the Elnora AI Platform to generate, optimize, and manage bioprotocols for wet-lab experiments.",
   "author": {
     "name": "Elnora AI",
