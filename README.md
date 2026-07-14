@@ -126,6 +126,13 @@ The Elnora MCP server supports two authentication methods:
 - **OAuth 2.1** (recommended) — A browser popup opens automatically on first connection. No manual configuration required.
 - **API Key** — Pass a Bearer token in the Authorization header. Generate keys from your Elnora account settings.
 
+## For coding agents
+
+Running Codex, Cursor, Aider, Continue, Amp, Jules, or Roo? Two files are written for agents rather than humans:
+
+- **[`AGENTS.md`](AGENTS.md)** — usage conventions: the MCP endpoint, the `elnora_*` tools, and a dispatch table mapping user intent to the right skill. Auto-loaded at repo root by most agent harnesses.
+- **[`INSTALL_FOR_AGENTS.md`](INSTALL_FOR_AGENTS.md)** — a gated, step-by-step setup runbook (verify → authenticate → copy skills → smoke test), with browser-assist offers for the OAuth and API-key steps.
+
 ## Available Plugins
 
 | Plugin | Description |
@@ -151,6 +158,7 @@ The Elnora MCP server supports two authentication methods:
 - **Website**: [elnora.ai](https://elnora.ai)
 - **Agent Skills Standard**: [agentskills.io](https://agentskills.io)
 - **MCP Endpoint**: [mcp.elnora.ai/mcp](https://mcp.elnora.ai/mcp)
+- **For agents**: [AGENTS.md](AGENTS.md) · [INSTALL_FOR_AGENTS.md](INSTALL_FOR_AGENTS.md)
 - **Issues**: [GitHub Issues](https://github.com/Elnora-AI/elnora-plugins/issues)
 
 ## License
