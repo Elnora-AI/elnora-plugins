@@ -1,6 +1,6 @@
 # Elnora Plugins — AI-Powered Bioprotocol Generation
 
-The [Elnora AI Platform](https://elnora.ai) for generating, optimizing, and managing bioprotocols for wet-lab experiments. This marketplace provides a Claude Code plugin with 9 skills + an MCP server declaration.
+The [Elnora AI Platform](https://elnora.ai) for generating, optimizing, and managing bioprotocols for wet-lab experiments. This marketplace provides a Claude Code plugin with 10 skills + an MCP server declaration.
 
 ## Installation (Claude Code)
 
@@ -47,7 +47,7 @@ Prefer browser-based OAuth, or running without a CLI? Install the plugin alone. 
 # Choose: Enable → elnora
 ```
 
-Plugin provides: 9 skills + MCP declaration. Say "Use Elnora to list projects" — Claude invokes MCP, triggers OAuth on first use, then cached. No CLI needed.
+Plugin provides: 10 skills + MCP declaration. Say "Use Elnora to list projects" — Claude invokes MCP, triggers OAuth on first use, then cached. No CLI needed.
 
 ### Path 3: Advanced — API key MCP (CI / skip OAuth)
 
@@ -123,8 +123,10 @@ https://mcp.elnora.ai/mcp
 
 The Elnora MCP server supports two authentication methods:
 
-- **OAuth 2.1** (recommended) — A browser popup opens automatically on first connection. No manual configuration required.
-- **API Key** — Pass a Bearer token in the Authorization header. Generate keys from your Elnora account settings.
+- **OAuth 2.1** — A browser popup opens automatically on first connection; no manual configuration. Best for interactive clients (Claude Code, Cursor, VS Code).
+- **API Key** — Generate a key at [platform.elnora.ai](https://platform.elnora.ai) and send it in a request header. Best for CI, scripts, and non-interactive clients. Use **either**:
+  - `X-API-Key: <your-key>` — the standard header, or
+  - `Authorization: Bearer <your-key>` — if your client only exposes a single bearer/token field.
 
 ## For coding agents
 
@@ -148,7 +150,8 @@ Running Codex, Cursor, Aider, Continue, Amp, Jules, or Roo? Two files are writte
 | `elnora-projects` | Create and manage projects, project members, and roles |
 | `elnora-tasks` | Create, update, search, and manage tasks and task messages |
 | `elnora-files` | Create, upload, download, version, and manage files and working copies |
-| `elnora-folders` | Create, rename, move, and delete project folders |
+| `elnora-folders` | Browse, create, rename, move, delete, and share Knowledge Base folders |
+| `elnora-review` | Approve or reject Knowledge Base auto-tidy proposals |
 | `elnora-search` | Search across files, tasks, and all resources in the platform |
 | `elnora-admin` | Manage API keys, audit logs, and administrative operations |
 | `elnora-agent` | Run scientific tools and literature lookups (PubMed, ArXiv, web search) via the cloud agent |
