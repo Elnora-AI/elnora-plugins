@@ -156,6 +156,12 @@ Running Codex, Cursor, Aider, Continue, Amp, Jules, or Roo? Two files are writte
 | `elnora-admin` | Manage API keys, audit logs, and administrative operations |
 | `elnora-agent` | Run scientific tools and literature lookups (PubMed, ArXiv, web search) via the cloud agent |
 
+## Versioning & releasing
+
+This plugin is a distribution of the [`@elnora-ai/cli`](https://github.com/Elnora-AI/elnora-cli) skills, so **its version tracks the CLI**. On each CLI release, the CLI's `sync-skills` job copies the current skills here and stamps the CLI version into `plugin.json` and `marketplace.json`. There is no independent plugin version — the `version` you see is the CLI version. (The `CHANGELOG.md` in this repo is frozen history from before this change; the changelog that matters is the [CLI's](https://github.com/Elnora-AI/elnora-cli/blob/main/CHANGELOG.md).)
+
+**Releasing a change to this repo:** the marketplace is served from the **default branch** — Claude Code clones the repo and `git pull`s `main` on `claude plugin marketplace update`. So a plugin-only change (README, CI, docs) "releases" simply by **merging to `main`**; there's no tag or publish step. Only bump `plugin.json` `version` by hand if you make a change that affects the *installed* runtime (e.g. the MCP server URL) and it must reach already-installed users before the next CLI release; otherwise let the next CLI sync carry the version forward.
+
 ## Links
 
 - **Website**: [elnora.ai](https://elnora.ai)
